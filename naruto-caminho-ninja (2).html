@@ -1,0 +1,2378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Caminho Ninja — RPG Incremental</title>
+<style>
+:root{
+  --bg-0:#0b0d14;
+  --bg-1:#11141d;
+  --bg-2:#171b27;
+  --bg-3:#1e2333;
+  --line:#2a3044;
+  --line-soft:#232838;
+  --text-0:#eef0f6;
+  --text-1:#b7bdd0;
+  --text-2:#7e8499;
+  --orange:#ff8a3d;
+  --orange-dim:#c9682a;
+  --chakra:#3fb0ff;
+  --chakra-dim:#2a7fb8;
+  --sharingan:#e8433f;
+  --gold:#f2c14e;
+  --green:#57c785;
+  --purple:#a179e0;
+  --pink:#e879b8;
+  --rank-d:#8a8f9e;
+  --rank-c:#57c785;
+  --rank-b:#3fb0ff;
+  --rank-a:#a179e0;
+  --rank-s:#f2c14e;
+  --rank-ss:#ff8a3d;
+  --rank-sss:#e8433f;
+  --font-display:'Yuji Syuku','Noto Serif JP',serif;
+  --font-body:'Zen Kaku Gothic New','Segoe UI',sans-serif;
+  --font-mono:'Zen Kaku Gothic New',monospace;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  background:
+    radial-gradient(ellipse at 15% -10%, rgba(255,138,61,0.10), transparent 45%),
+    radial-gradient(ellipse at 85% 0%, rgba(63,176,255,0.08), transparent 40%),
+    var(--bg-0);
+  color:var(--text-0);
+  font-family:var(--font-body);
+  overflow:hidden;
+}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px;}
+::-webkit-scrollbar-thumb:hover{background:var(--orange-dim);}
+
+.app{display:flex;height:100vh;width:100vw;}
+
+/* ---------- SIDEBAR ---------- */
+.sidebar{
+  width:220px;flex-shrink:0;background:var(--bg-1);
+  border-right:1px solid var(--line-soft);
+  display:flex;flex-direction:column;
+  padding:14px 10px;overflow-y:auto;
+}
+.brand{
+  display:flex;align-items:center;gap:10px;padding:6px 8px 16px 8px;
+  border-bottom:1px solid var(--line-soft);margin-bottom:10px;
+}
+.brand-emblem{
+  width:34px;height:34px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, var(--orange), var(--orange-dim) 70%);
+  box-shadow:0 0 14px rgba(255,138,61,0.5);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:18px;color:#1a0f05;font-weight:700;
+}
+.brand-text{display:flex;flex-direction:column;}
+.brand-text b{font-family:var(--font-display);font-size:15px;letter-spacing:0.5px;}
+.brand-text span{font-size:10px;color:var(--text-2);}
+
+.nav-group-label{
+  font-size:10px;text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--text-2);margin:12px 8px 6px 8px;font-weight:600;
+}
+.nav-btn{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:8px;cursor:pointer;
+  color:var(--text-1);font-size:13px;font-weight:500;
+  border:1px solid transparent;position:relative;
+  transition:background .12s,color .12s;
+  user-select:none;
+}
+.nav-btn:hover{background:var(--bg-2);color:var(--text-0);}
+.nav-btn.active{background:linear-gradient(90deg, rgba(255,138,61,0.16), rgba(255,138,61,0.02));color:var(--orange);border-color:rgba(255,138,61,0.25);}
+.nav-btn .ico{width:18px;text-align:center;font-size:15px;}
+.nav-btn .badge{
+  margin-left:auto;background:var(--sharingan);color:#fff;font-size:10px;
+  padding:1px 6px;border-radius:10px;font-weight:700;
+}
+
+/* ---------- MAIN ---------- */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+
+.topbar{
+  display:flex;align-items:center;gap:18px;
+  padding:10px 20px;border-bottom:1px solid var(--line-soft);
+  background:var(--bg-1);flex-wrap:wrap;
+}
+.top-stat{display:flex;flex-direction:column;min-width:90px;}
+.top-stat .lbl{font-size:9px;text-transform:uppercase;color:var(--text-2);letter-spacing:0.8px;}
+.top-stat .val{font-size:14px;font-weight:700;}
+.top-stat.gold .val{color:var(--gold);}
+.top-stat.chakra .val{color:var(--chakra);}
+.top-stat.hp .val{color:var(--green);}
+.xp-wrap{flex:1;min-width:160px;display:flex;flex-direction:column;gap:3px;}
+.xp-top{display:flex;justify-content:space-between;font-size:10px;color:var(--text-2);}
+.bar-track{height:8px;background:var(--bg-3);border-radius:5px;overflow:hidden;border:1px solid var(--line-soft);}
+.bar-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--orange-dim),var(--orange));transition:width .25s;}
+.bar-fill.chakra{background:linear-gradient(90deg,var(--chakra-dim),var(--chakra));}
+.bar-fill.hp{background:linear-gradient(90deg,#2a8a55,var(--green));}
+.bar-fill.stam{background:linear-gradient(90deg,#8a6f2a,var(--gold));}
+.top-right{display:flex;gap:8px;align-items:center;margin-left:auto;}
+.icon-btn{
+  background:var(--bg-2);border:1px solid var(--line-soft);color:var(--text-1);
+  border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer;
+}
+.icon-btn:hover{border-color:var(--orange-dim);color:var(--orange);}
+
+.content{flex:1;overflow-y:auto;padding:18px 22px 60px 22px;}
+.screen{display:none;}
+.screen.active{display:block;animation:fadein .18s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+h1.screen-title{font-family:var(--font-display);font-size:22px;margin:0 0 4px 0;color:var(--text-0);}
+p.screen-sub{color:var(--text-2);font-size:12.5px;margin:0 0 18px 0;}
+
+.grid{display:grid;gap:14px;}
+.grid.cols-2{grid-template-columns:1fr 1fr;}
+.grid.cols-3{grid-template-columns:repeat(3,1fr);}
+.grid.cols-4{grid-template-columns:repeat(4,1fr);}
+.grid.auto{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));}
+
+.card{
+  background:var(--bg-1);border:1px solid var(--line-soft);border-radius:var(--radius);
+  padding:14px;position:relative;
+}
+.card h3{margin:0 0 8px 0;font-size:13.5px;color:var(--text-0);display:flex;align-items:center;gap:8px;}
+.card h3 .ico{font-size:16px;}
+.card-sub{color:var(--text-2);font-size:11px;margin:-4px 0 10px 0;}
+
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line-soft);font-size:12.5px;}
+.stat-row:last-child{border-bottom:none;}
+.stat-row .name{color:var(--text-1);display:flex;align-items:center;gap:6px;}
+.stat-row .value{font-weight:700;color:var(--text-0);}
+.stat-row .gain{color:var(--green);font-size:10.5px;margin-left:6px;}
+
+.btn{
+  background:var(--bg-3);border:1px solid var(--line);color:var(--text-0);
+  padding:8px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600;
+  transition:transform .08s, border-color .12s, box-shadow .12s;
+}
+.btn:hover{border-color:var(--orange-dim);}
+.btn:active{transform:scale(0.97);}
+.btn.primary{background:linear-gradient(180deg,var(--orange),var(--orange-dim));border-color:var(--orange-dim);color:#1a0f05;}
+.btn.primary:hover{box-shadow:0 0 14px rgba(255,138,61,0.4);}
+.btn.chakra{background:linear-gradient(180deg,var(--chakra),var(--chakra-dim));border-color:var(--chakra-dim);color:#03131f;}
+.btn.small{padding:5px 9px;font-size:11px;}
+.btn.full{width:100%;}
+.btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.btn.danger{background:linear-gradient(180deg,#e8433f,#a52c29);border-color:#a52c29;color:#fff;}
+.btn.ghost{background:transparent;}
+
+.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.3px;}
+.tag.d{background:rgba(138,143,158,0.18);color:var(--rank-d);}
+.tag.c{background:rgba(87,199,133,0.18);color:var(--rank-c);}
+.tag.b{background:rgba(63,176,255,0.18);color:var(--rank-b);}
+.tag.a{background:rgba(161,121,224,0.18);color:var(--rank-a);}
+.tag.s{background:rgba(242,193,78,0.18);color:var(--rank-s);}
+.tag.ss{background:rgba(255,138,61,0.18);color:var(--rank-ss);}
+.tag.sss{background:rgba(232,67,63,0.18);color:var(--rank-sss);}
+
+.tag.common{background:rgba(183,189,208,0.15);color:#b7bdd0;}
+.tag.incomum{background:rgba(87,199,133,0.18);color:var(--green);}
+.tag.raro{background:rgba(63,176,255,0.18);color:var(--chakra);}
+.tag.epico{background:rgba(161,121,224,0.18);color:var(--purple);}
+.tag.lendario{background:rgba(242,193,78,0.18);color:var(--gold);}
+.tag.mitico{background:rgba(232,67,63,0.2);color:var(--sharingan);}
+
+.pillbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.pill{
+  padding:6px 12px;border-radius:20px;background:var(--bg-2);border:1px solid var(--line-soft);
+  font-size:11.5px;cursor:pointer;color:var(--text-1);font-weight:600;
+}
+.pill.active{background:rgba(255,138,61,0.16);color:var(--orange);border-color:var(--orange-dim);}
+
+.prog-mini{height:5px;background:var(--bg-3);border-radius:4px;overflow:hidden;margin-top:6px;border:1px solid var(--line-soft);}
+.prog-mini i{display:block;height:100%;background:linear-gradient(90deg,var(--chakra-dim),var(--chakra));}
+
+.list-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 12px;border:1px solid var(--line-soft);border-radius:8px;
+  margin-bottom:8px;background:var(--bg-1);gap:10px;
+}
+.list-item .li-main{flex:1;min-width:0;}
+.list-item .li-title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.list-item .li-desc{font-size:11px;color:var(--text-2);margin-top:3px;}
+.list-item.locked{opacity:0.45;}
+.list-item.learned{border-color:rgba(87,199,133,0.35);}
+.list-item.equipped{border-color:rgba(255,138,61,0.45);background:rgba(255,138,61,0.05);}
+
+.toast-wrap{position:fixed;top:16px;right:16px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast{
+  background:var(--bg-2);border:1px solid var(--line);border-left:4px solid var(--orange);
+  padding:10px 14px;border-radius:8px;font-size:12.5px;min-width:220px;max-width:320px;
+  box-shadow:0 6px 24px rgba(0,0,0,0.4);animation:slidein .2s ease;
+}
+.toast b{color:var(--orange);}
+.toast.xp{border-left-color:var(--chakra);}
+.toast.xp b{color:var(--chakra);}
+.toast.item{border-left-color:var(--gold);}
+.toast.item b{color:var(--gold);}
+.toast.warn{border-left-color:var(--sharingan);}
+.toast.warn b{color:var(--sharingan);}
+@keyframes slidein{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
+@keyframes fadeout{to{opacity:0;transform:translateX(20px);}}
+
+.modal-bg{
+  position:fixed;inset:0;background:rgba(5,6,10,0.72);backdrop-filter:blur(2px);
+  display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;
+}
+.modal-bg.active{display:flex;}
+.modal{
+  background:var(--bg-1);border:1px solid var(--line);border-radius:14px;
+  max-width:480px;width:100%;padding:20px;max-height:85vh;overflow-y:auto;
+}
+.modal h2{font-family:var(--font-display);margin:0 0 10px 0;font-size:18px;}
+.modal-close{position:absolute;top:14px;right:16px;cursor:pointer;color:var(--text-2);font-size:18px;}
+.modal.battle{max-width:620px;}
+
+.clan-card{
+  border:1px solid var(--line-soft);border-radius:10px;padding:12px;cursor:pointer;
+  background:var(--bg-2);transition:border-color .12s;
+}
+.clan-card:hover{border-color:var(--orange-dim);}
+.clan-card.selected{border-color:var(--orange);background:rgba(255,138,61,0.08);}
+.clan-card h4{margin:0 0 4px 0;font-size:13px;}
+.clan-card p{margin:0;font-size:11px;color:var(--text-2);line-height:1.4;}
+
+.progress-label{display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-2);margin-bottom:3px;}
+
+.affinity-orb{
+  width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:20px;border:2px solid var(--line);position:relative;margin:0 auto 6px auto;
+  background:var(--bg-2);
+}
+.affinity-wrap{text-align:center;font-size:10.5px;color:var(--text-2);}
+.affinity-wrap b{display:block;font-size:11.5px;color:var(--text-0);margin-top:2px;}
+
+.mobile-tabbar{display:none;}
+
+@media (max-width:880px){
+  .sidebar{display:none;}
+  .app{flex-direction:column;}
+  .content{padding:12px 12px 76px 12px;}
+  .grid.cols-2,.grid.cols-3,.grid.cols-4{grid-template-columns:1fr;}
+  .topbar{padding:8px 10px;gap:10px;}
+  .mobile-tabbar{
+    display:flex;position:fixed;bottom:0;left:0;right:0;height:58px;
+    background:var(--bg-1);border-top:1px solid var(--line-soft);z-index:200;
+    overflow-x:auto;
+  }
+  .mobile-tabbar .mnav{
+    flex:1;min-width:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    color:var(--text-2);font-size:9px;gap:2px;cursor:pointer;
+  }
+  .mobile-tabbar .mnav.active{color:var(--orange);}
+  .mobile-tabbar .mnav .ico{font-size:16px;}
+}
+.bar-fill.enemy{background:linear-gradient(90deg,#a52c29,var(--sharingan));}
+.battle-move{
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+  padding:9px 10px;border-radius:8px;background:var(--bg-2);border:1px solid var(--line-soft);
+  cursor:pointer;text-align:left;color:var(--text-0);font-size:11.5px;font-weight:600;
+}
+.battle-move:hover{border-color:var(--orange-dim);}
+.battle-move:disabled,.battle-move.disabled{opacity:0.35;cursor:not-allowed;}
+.battle-move .bm-sub{font-size:9.5px;color:var(--text-2);font-weight:500;}
+.battle-vs{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.battle-side{flex:1;}
+.battle-side .bs-name{font-size:12px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:6px;}
+.battle-ico{font-size:30px;}
+.hidden{display:none !important;}
+
+.flex{display:flex;}
+.flex.gap{gap:8px;}
+.flex.wrap{flex-wrap:wrap;}
+.flex.between{justify-content:space-between;}
+.flex.center{align-items:center;}
+.muted{color:var(--text-2);}
+.small{font-size:11px;}
+.mt8{margin-top:8px;}
+.mt14{margin-top:14px;}
+.mb0{margin-bottom:0;}
+.section-divider{border:none;border-top:1px solid var(--line-soft);margin:16px 0;}
+.combat-bar-wrap{margin-bottom:8px;}
+.combat-log{
+  background:var(--bg-0);border:1px solid var(--line-soft);border-radius:8px;
+  padding:8px 10px;height:110px;overflow-y:auto;font-size:11px;color:var(--text-1);
+  display:flex;flex-direction:column-reverse;
+}
+.combat-log div{padding:2px 0;border-bottom:1px dashed var(--line-soft);}
+.talent-node{
+  border:1px solid var(--line-soft);border-radius:10px;padding:10px;background:var(--bg-2);
+  text-align:center;cursor:pointer;
+}
+.talent-node.bought{border-color:var(--green);background:rgba(87,199,133,0.08);}
+.talent-node.locked{opacity:0.4;cursor:not-allowed;}
+.talent-node .tn-ico{font-size:20px;}
+.talent-node .tn-name{font-size:11px;font-weight:700;margin-top:4px;}
+.talent-node .tn-desc{font-size:9.5px;color:var(--text-2);margin-top:2px;}
+.talent-node .tn-cost{font-size:10px;color:var(--gold);margin-top:4px;}
+.ach-badge{
+  border:1px solid var(--line-soft);border-radius:10px;padding:10px;text-align:center;background:var(--bg-2);
+}
+.ach-badge.done{border-color:var(--gold);background:rgba(242,193,78,0.08);}
+.ach-badge .ab-ico{font-size:22px;}
+.ach-badge .ab-name{font-size:10.5px;font-weight:700;margin-top:4px;}
+.ach-badge .ab-desc{font-size:9px;color:var(--text-2);margin-top:2px;}
+</style>
+</head>
+<body>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modalBox" style="position:relative;">
+    <span class="modal-close" onclick="closeModal()">✕</span>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<div class="app" id="app"></div>
+
+<script id="game-script">
+/* =========================================================================
+   CAMINHO NINJA — DADOS DO JOGO
+   ========================================================================= */
+
+const RANKS = [
+  {id:'estudante', name:'Estudante da Academia', lvl:1,  ico:'📘'},
+  {id:'genin',     name:'Genin',                 lvl:5,  ico:'🍃'},
+  {id:'chunin',    name:'Chunin',                lvl:15, ico:'⚔️'},
+  {id:'jonin',     name:'Jônin',                 lvl:28, ico:'🌀'},
+  {id:'anbu',      name:'ANBU',                  lvl:42, ico:'🎭'},
+  {id:'kage',      name:'Hokage',                lvl:60, ico:'🔥'},
+];
+function rankForLevel(lvl){
+  let r = RANKS[0];
+  for(const rk of RANKS){ if(lvl>=rk.lvl) r=rk; }
+  return r;
+}
+function nextRank(lvl){
+  for(const rk of RANKS){ if(lvl<rk.lvl) return rk; }
+  return null;
+}
+
+/* ---------------- CLÃS ---------------- */
+const CLANS = {
+  uzumaki:{
+    name:'Uzumaki', ico:'🌀', element:'agua',
+    desc:'Vitalidade descomunal e reservas de chakra imensas. Mestres do Fuinjutsu.',
+    bonus:{chakra:0.35, hp:0.20, statLabel:'+35% Chakra máx, +20% Vida máx'},
+    dojutsu:null, passive:'Regeneração de chakra +15%.'
+  },
+  uchiha:{
+    name:'Uchiha', ico:'👁️', element:'fogo',
+    desc:'Clã de elite com o Sharingan. Domina Katon e técnicas de cópia visual.',
+    bonus:{force:0.15, intel:0.25, statLabel:'+15% Força, +25% Inteligência'},
+    dojutsu:'sharingan', passive:'Desbloqueia o Sharingan e Katon aprimorado.'
+  },
+  hyuga:{
+    name:'Hyūga', ico:'🥋', element:'nenhum',
+    desc:'Guardiões do Byakugan, mestres absolutos do Taijutsu e Punho Suave.',
+    bonus:{speed:0.20, chakraControl:0.30, statLabel:'+20% Velocidade, +30% Controle de Chakra'},
+    dojutsu:'byakugan', passive:'Desbloqueia o Byakugan e Taijutsu aprimorado.'
+  },
+  senju:{
+    name:'Senju', ico:'🌳', element:'terra',
+    desc:'Clã lendário de vitalidade e afinidade natural com Mokuton (Liberação de Madeira).',
+    bonus:{hp:0.35, force:0.15, statLabel:'+35% Vida máx, +15% Força'},
+    dojutsu:null, passive:'Chance de despertar Mokuton em missões de elite.'
+  },
+  nara:{
+    name:'Nara', ico:'🦌', element:'terra',
+    desc:'Estrategistas brilhantes especializados em Kagemane (Possessão de Sombras).',
+    bonus:{intel:0.40, chakraControl:0.10, statLabel:'+40% Inteligência, +10% Controle de Chakra'},
+    dojutsu:null, passive:'Ganho de XP em missões +10%.'
+  },
+  akimichi:{
+    name:'Akimichi', ico:'🍖', element:'nenhum',
+    desc:'Guerreiros robustos que expandem o corpo para golpes devastadores.',
+    bonus:{force:0.35, hp:0.15, statLabel:'+35% Força, +15% Vida máx'},
+    dojutsu:null, passive:'Custo de treino físico -10%.'
+  },
+  yamanaka:{
+    name:'Yamanaka', ico:'🧠', element:'nenhum',
+    desc:'Especialistas em Genjutsu e técnicas de manipulação mental.',
+    bonus:{intel:0.25, chakraControl:0.20, statLabel:'+25% Inteligência, +20% Controle de Chakra'},
+    dojutsu:null, passive:'Poder de Genjutsu +20%.'
+  },
+  aburame:{
+    name:'Aburame', ico:'🪲', element:'nenhum',
+    desc:'Usuários de insetos kikaichu, com controle de chakra impecável.',
+    bonus:{chakraControl:0.35, chakra:0.15, statLabel:'+35% Controle de Chakra, +15% Chakra máx'},
+    dojutsu:null, passive:'Custo de chakra dos jutsus -8%.'
+  },
+  inuzuka:{
+    name:'Inuzuka', ico:'🐺', element:'nenhum',
+    desc:'Ninjas ferozes que lutam ao lado de parceiros caninos.',
+    bonus:{speed:0.35, force:0.10, statLabel:'+35% Velocidade, +10% Força'},
+    dojutsu:null, passive:'Velocidade de missão +10%.'
+  },
+  sarutobi:{
+    name:'Sarutobi', ico:'🐒', element:'fogo',
+    desc:'Linhagem equilibrada com grande versatilidade em todas as artes ninja.',
+    bonus:{force:0.10,speed:0.10,intel:0.10,chakra:0.10, statLabel:'+10% em todos os atributos'},
+    dojutsu:null, passive:'Nenhuma fraqueza — desenvolvimento balanceado.'
+  },
+};
+
+/* ---------------- ELEMENTOS ---------------- */
+const BASE_ELEMENTS = {
+  fogo:{name:'Fogo (Katon)', ico:'🔥', color:'#ff8a3d'},
+  vento:{name:'Vento (Fūton)', ico:'💨', color:'#a8e6d5'},
+  raio:{name:'Raio (Raiton)', ico:'⚡', color:'#f2e14e'},
+  terra:{name:'Terra (Doton)', ico:'🪨', color:'#c99a5b'},
+  agua:{name:'Água (Suiton)', ico:'💧', color:'#3fb0ff'},
+};
+const YIN_YANG = {
+  yin:{name:'Yin (Negativo)', ico:'☯️', color:'#7e8499'},
+  yang:{name:'Yang (Positivo)', ico:'☯️', color:'#f2c14e'},
+};
+const COMBO_ELEMENTS = {
+  mokuton:{name:'Madeira (Mokuton)', ico:'🌳', color:'#6fae52', req:['terra','agua']},
+  hyoton:{name:'Gelo (Hyōton)', ico:'❄️', color:'#bfe9ff', req:['agua','vento']},
+  yoton:{name:'Lava (Yōton)', ico:'🌋', color:'#e05a3d', req:['fogo','terra']},
+  ranton:{name:'Tempestade (Ranton)', ico:'🌩️', color:'#8f7bd1', req:['raio','vento']},
+  futton:{name:'Vapor (Fūtton)', ico:'♨️', color:'#e8c6e0', req:['fogo','agua']},
+  jiton:{name:'Magnetismo (Jiton)', ico:'🧲', color:'#c94f7c', req:['terra','raio']},
+};
+const ALL_ELEMENTS = Object.assign({}, BASE_ELEMENTS, YIN_YANG, COMBO_ELEMENTS);
+
+/* ---------------- JUTSU ---------------- */
+const JUTSU_RANK_BY_TIER = ['D','D','C','C','B','B','A','S'];
+const CATS = {
+  taijutsu:'Taijutsu', ninjutsu:'Ninjutsu', genjutsu:'Genjutsu',
+  fuinjutsu:'Fūinjutsu', senjutsu:'Senjutsu', medico:'Ninjutsu Médico', kenjutsu:'Kenjutsu'
+};
+
+function buildJutsuList(){
+  const list = [];
+  let uid = 1;
+  function push(o){ o.id = 'j'+(uid++); o.learned=false; list.push(o); }
+
+  // Iconic named jutsu (hand-crafted)
+  const iconic = [
+    {name:'Jutsu Clone das Sombras', cat:'ninjutsu', element:null, tier:2, chakra:15, desc:'Cria clones sólidos de chakra para treino e combate.', req:{level:3}},
+    {name:'Rasengan', cat:'ninjutsu', element:null, tier:5, chakra:45, desc:'Esfera giratória de chakra puro concentrado na palma da mão.', req:{level:20, stat:'chakraControl', min:40}},
+    {name:'Rasengan Aprimorado: Rasenshuriken', cat:'ninjutsu', element:'vento', tier:8, chakra:120, desc:'Fusão de afinidade a vento com o Rasengan — corta em nível celular.', req:{level:55, elementAff:{vento:60}}},
+    {name:'Chidori', cat:'ninjutsu', element:'raio', tier:5, chakra:50, desc:'Mil pássaros de eletricidade concentrados na mão, corta tudo à frente.', req:{level:20, elementAff:{raio:35}}},
+    {name:'Chidori Corrente/Lâmina', cat:'ninjutsu', element:'raio', tier:7, chakra:85, desc:'Versão avançada do Chidori em forma de lâmina alongada.', req:{level:40, elementAff:{raio:55}}},
+    {name:'Katon: Bola de Fogo Grandiosa', cat:'ninjutsu', element:'fogo', tier:3, chakra:30, desc:'Técnica de assinatura do clã Uchiha — libera uma esfera de fogo massiva.', req:{level:8, elementAff:{fogo:20}}},
+    {name:'Suiton: Dragão de Água', cat:'ninjutsu', element:'agua', tier:5, chakra:55, desc:'Convoca um dragão feito de água para atacar o inimigo.', req:{level:22, elementAff:{agua:40}}},
+    {name:'Doton: Muro de Terra', cat:'ninjutsu', element:'terra', tier:2, chakra:20, desc:'Ergue uma parede de terra e pedra para defesa instantânea.', req:{level:6, elementAff:{terra:15}}},
+    {name:'Fūton: Grande Avanço', cat:'ninjutsu', element:'vento', tier:3, chakra:28, desc:'Rajada cortante de vento capaz de dispersar fumaça e ferir à distância.', req:{level:9, elementAff:{vento:20}}},
+    {name:'Kage Mane no Jutsu', cat:'taijutsu', element:null, tier:3, chakra:25, desc:'Possessão de sombras — imobiliza o alvo copiando seus movimentos.', req:{level:10, clan:'nara'}},
+    {name:'Byakugan: Punho Suave', cat:'taijutsu', element:null, tier:4, chakra:20, desc:'Ataques precisos que fecham os pontos de chakra do inimigo.', req:{level:14, clan:'hyuga'}},
+    {name:'Oito Trigramas: 64 Palmas', cat:'taijutsu', element:null, tier:6, chakra:60, desc:'Sequência devastadora de 64 golpes que sela o chakra do oponente.', req:{level:32, clan:'hyuga'}},
+    {name:'Sussanoo', cat:'ninjutsu', element:'fogo', tier:8, chakra:150, desc:'Avatar de chakra colossal do Mangekyou Sharingan.', req:{level:58, dojutsuStage:'sharingan_mk'}},
+    {name:'Amaterasu', cat:'ninjutsu', element:'fogo', tier:8, chakra:130, desc:'Chamas negras inextinguíveis convocadas pelo Mangekyou Sharingan.', req:{level:56, dojutsuStage:'sharingan_mk'}},
+    {name:'Kamui', cat:'ninjutsu', element:null, tier:8, chakra:140, desc:'Teleporte dimensional através de um Mangekyou Sharingan especial.', req:{level:57, dojutsuStage:'sharingan_mk'}},
+    {name:'Mokuton: Nascimento das Árvores', cat:'ninjutsu', element:'mokuton', tier:6, chakra:80, desc:'Cria uma floresta instantânea capaz de prender múltiplos inimigos.', req:{level:35, clan:'senju'}},
+    {name:'Modo Sábio', cat:'senjutsu', element:null, tier:7, chakra:100, desc:'Absorve chakra natural para potencializar drasticamente todos os atributos.', req:{level:45, mentor:'jiraiya'}},
+    {name:'Ninjutsu Médico: Palma da Vida', cat:'medico', element:null, tier:4, chakra:40, desc:'Técnica de cura avançada que regenera tecidos em segundos.', req:{level:18, mentor:'tsunade'}},
+    {name:'Força Monstruosa', cat:'taijutsu', element:null, tier:6, chakra:35, desc:'Concentração de chakra nos punhos para golpes capazes de rachar o solo.', req:{level:30, mentor:'tsunade'}},
+    {name:'Kuchiyose: Invocação', cat:'fuinjutsu', element:null, tier:3, chakra:30, desc:'Contrato de sangue que invoca um aliado animal ao campo de batalha.', req:{level:12}},
+    {name:'Selo dos Quatro Cantos', cat:'fuinjutsu', element:null, tier:5, chakra:50, desc:'Selamento avançado usado para conter grandes quantidades de chakra.', req:{level:26}},
+    {name:'Hiraishin no Jutsu', cat:'fuinjutsu', element:null, tier:7, chakra:90, desc:'Técnica de teleporte instantâneo usando marcas espaciais selada em kunais.', req:{level:44, mentor:'kakashi'}},
+    {name:'Sexy Jutsu', cat:'genjutsu', element:null, tier:1, chakra:5, desc:'Transformação cômica que distrai e desorienta o oponente.', req:{level:1}},
+    {name:'Genjutsu: Prisão da Lua Vermelha', cat:'genjutsu', element:null, tier:6, chakra:70, desc:'Ilusão poderosa que aprisiona a mente do alvo em um sonho eterno.', req:{level:34, dojutsuStage:'sharingan_3'}},
+    {name:'Susanoo Completo: Rinnegan', cat:'ninjutsu', element:null, tier:9, chakra:220, desc:'Domínio total do chakra dos Seis Caminhos manifestado em batalha.', req:{level:75, dojutsuStage:'rinnegan'}},
+  ];
+  iconic.forEach(o=>push(Object.assign({rankLetter:JUTSU_RANK_BY_TIER[Math.min(o.tier,7)]},o)));
+
+  // Taijutsu progression (no element)
+  const taiNames = ['Combo Básico de Socos','Chute Giratório','Sequência de Cotoveladas','Postura de Punho de Ferro',
+    'Chute Ascendente','Combo Relâmpago Corporal','Golpe do Furacão','Impacto de Leão','Punho dos Mil Golpes',
+    'Estilo da Folha Cortante','Técnica do Vendaval Corporal','Punho Explosivo Final'];
+  taiNames.forEach((n,i)=>{
+    const tier = Math.min(1+Math.floor(i*0.7),8);
+    push({name:n, cat:'taijutsu', element:null, tier, rankLetter:JUTSU_RANK_BY_TIER[Math.min(tier,7)],
+      chakra:8+tier*6, desc:'Técnica corpo a corpo que aprimora força e velocidade em combate.',
+      req:{level:1+tier*4}});
+  });
+
+  // Ninjutsu per element, 8 tiers each
+  const ninjaVerbs = ['Lança de','Rajada de','Muralha de','Explosão de','Dragão de','Tempestade de','Prisão de','Fúria Suprema de'];
+  Object.keys(ALL_ELEMENTS).forEach(elKey=>{
+    const el = ALL_ELEMENTS[elKey];
+    for(let t=1;t<=8;t++){
+      const verb = ninjaVerbs[t-1];
+      push({name:`${verb} ${el.name.split(' (')[0]}`, cat:'ninjutsu', element:elKey, tier:t,
+        rankLetter:JUTSU_RANK_BY_TIER[Math.min(t,7)], chakra:10+t*12,
+        desc:`Técnica de Ninjutsu de elemento ${el.name.split(' (')[0]} — nível ${t} de maestria.`,
+        req:{level:2+t*6, elementAff:{[elKey]:t*8}}});
+    }
+  });
+
+  // Genjutsu
+  const genNames = ['Ilusão da Folha Caindo','Sonho do Espelho Quebrado','Paralisia Sensorial','Labirinto Mental',
+    'Terror Noturno Ilusório','Prisão de Cristal Mental','Colapso da Percepção','Pesadelo Infinito'];
+  genNames.forEach((n,i)=>{
+    const t=i+1;
+    push({name:n, cat:'genjutsu', element:null, tier:t, rankLetter:JUTSU_RANK_BY_TIER[Math.min(t,7)],
+      chakra:12+t*10, desc:'Manipula os cinco sentidos do oponente através do fluxo de chakra.',
+      req:{level:4+t*6, stat:'intel', min:t*10}});
+  });
+
+  // Fuinjutsu
+  const fuinNames = ['Selo de Contenção Simples','Selo Explosivo Básico','Pergaminho de Armazenamento','Selo de Supressão de Chakra',
+    'Barreira de Cinco Selos','Selo de Absorção de Chakra','Selo de Reversão Temporal','Selo Proibido dos Oito Portões'];
+  fuinNames.forEach((n,i)=>{
+    const t=i+1;
+    push({name:n, cat:'fuinjutsu', element:null, tier:t, rankLetter:JUTSU_RANK_BY_TIER[Math.min(t,7)],
+      chakra:10+t*11, desc:'Arte do selamento — manipula chakra através de fórmulas escritas.',
+      req:{level:5+t*6, stat:'chakraControl', min:t*10}});
+  });
+
+  // Senjutsu
+  const senNames = ['Percepção de Chakra Natural','Postura Sapo Inicial','Fluxo Sábio Parcial','Harmonia com a Natureza',
+    'Modo Sábio Sapo','Modo Sábio Serpente','Fusão Perfeita de Chakra Natural','Avatar Sábio Supremo'];
+  senNames.forEach((n,i)=>{
+    const t=i+1;
+    push({name:n, cat:'senjutsu', element:null, tier:t, rankLetter:JUTSU_RANK_BY_TIER[Math.min(t,7)],
+      chakra:20+t*14, desc:'Absorve chakra natural do ambiente, arriscado mas extremamente poderoso.',
+      req:{level:20+t*6, stat:'chakra', min:t*20}});
+  });
+
+  // Medico
+  const medNames = ['Primeiros Socorros com Chakra','Cura de Tecidos Superficiais','Diagnóstico por Chakra',
+    'Regeneração Celular Acelerada','Antídoto Universal por Chakra','Cirurgia de Chakra Avançada',
+    'Reanimação de Emergência','Palma da Vida Perfeita'];
+  medNames.forEach((n,i)=>{
+    const t=i+1;
+    push({name:n, cat:'medico', element:null, tier:t, rankLetter:JUTSU_RANK_BY_TIER[Math.min(t,7)],
+      chakra:14+t*10, desc:'Ninjutsu médico — cura ferimentos e restaura vitalidade em combate.',
+      req:{level:6+t*6, stat:'intel', min:t*8}});
+  });
+
+  // Kenjutsu
+  const kenNames = ['Corte Único Básico','Sequência de Duas Lâminas','Golpe Cruzado','Dança das Mil Lâminas',
+    'Corte Silencioso','Investida do Dragão de Aço','Onda Cortante à Distância','Lâmina Divina Final'];
+  kenNames.forEach((n,i)=>{
+    const t=i+1;
+    push({name:n, cat:'kenjutsu', element:null, tier:t, rankLetter:JUTSU_RANK_BY_TIER[Math.min(t,7)],
+      chakra:9+t*9, desc:'Técnica de espadachim — requer uma arma equipada e precisão cirúrgica.',
+      req:{level:7+t*6, stat:'speed', min:t*9}});
+  });
+
+  return list;
+}
+
+/* ---------------- MISSÕES ---------------- */
+const MISSION_RANKS = ['D','C','B','A','S','SS','SSS'];
+const MISSION_RANK_INFO = {
+  D:{minLevel:1, dur:8,  xp:70,  ryo:20,   tag:'d'},
+  C:{minLevel:6, dur:16, xp:190, ryo:60,   tag:'c'},
+  B:{minLevel:14,dur:28, xp:520, ryo:150,  tag:'b'},
+  A:{minLevel:24,dur:45, xp:1300,ryo:380,  tag:'a'},
+  S:{minLevel:36,dur:70, xp:3200,ryo:900,  tag:'s'},
+  SS:{minLevel:50,dur:110,xp:7500,ryo:2100,tag:'ss'},
+  SSS:{minLevel:65,dur:170,xp:17000,ryo:5000,tag:'sss'},
+};
+const MISSION_VERBS = ['Escoltar comerciante em','Capturar bandido fugitivo perto de','Investigar distúrbios em',
+  'Recuperar pergaminho roubado de','Eliminar grupo de ladrões perto de','Proteger caravana até',
+  'Rastrear espião inimigo em','Resgatar refém em','Neutralizar sabotador em','Patrulhar fronteira de'];
+const MISSION_PLACES = ['Vila da Névoa','Vila da Areia','País das Ondas','Floresta da Morte','Vila da Cachoeira',
+  'Passo Rochoso','Vila da Chuva','País do Ferro','Ponte Naruto','País do Chá','Ruínas Antigas','Vila da Erva'];
+
+function buildMissionList(){
+  const list=[]; let uid=1;
+  MISSION_RANKS.forEach(rk=>{
+    const info = MISSION_RANK_INFO[rk];
+    for(let i=0;i<7;i++){
+      const verb = MISSION_VERBS[(i*3+rk.length)%MISSION_VERBS.length];
+      const place = MISSION_PLACES[(i*5+rk.length*2)%MISSION_PLACES.length];
+      list.push({
+        id:'m'+(uid++), rank:rk, name:`${verb} ${place}`,
+        minLevel:info.minLevel + i*2,
+        duration: info.dur + i*4,
+        xp: Math.round(info.xp * (1+i*0.25)),
+        ryo: Math.round(info.ryo * (1+i*0.18)),
+        stamina: 10 + MISSION_RANKS.indexOf(rk)*4,
+        tag: info.tag,
+        dropChance: 0.16 + MISSION_RANKS.indexOf(rk)*0.03,
+      });
+    }
+  });
+  return list;
+}
+
+/* ---------------- EQUIPAMENTOS ---------------- */
+const RARITIES = [
+  {id:'comum', name:'Comum', mult:1, cls:'common'},
+  {id:'incomum', name:'Incomum', mult:1.6, cls:'incomum'},
+  {id:'raro', name:'Raro', mult:2.5, cls:'raro'},
+  {id:'epico', name:'Épico', mult:4, cls:'epico'},
+  {id:'lendario', name:'Lendário', mult:6.5, cls:'lendario'},
+  {id:'mitico', name:'Mítico', mult:10, cls:'mitico'},
+];
+const EQUIP_SLOTS = {
+  arma:{name:'Arma', ico:'🗡️', stat:'force'},
+  armadura:{name:'Armadura', ico:'🥋', stat:'hp'},
+  acessorio:{name:'Acessório', ico:'💍', stat:'chakraControl'},
+  pergaminho:{name:'Pergaminho', ico:'📜', stat:'intel'},
+};
+const WEAPONS = [
+  {name:'Kunai', min:0, desc:'A lâmina básica de todo shinobi.'},
+  {name:'Shuriken', min:0, desc:'Estrela ninja de arremesso.'},
+  {name:'Senbon Envenenado', min:1, desc:'Agulhas finas usadas por Haku com precisão cirúrgica.'},
+  {name:'Fūma Shuriken', min:1, desc:'Grande shuriken dobrável usado por Sasuke e Kankurō.'},
+  {name:'Facas de Chakra de Asuma', min:2, desc:'Facões de vento imbuídos de chakra, arma de Asuma Sarutobi.'},
+  {name:'Kiba (Lâminas Gêmeas do Raio)', min:3, desc:'Par de espadas elétricas dos Sete Espadachins da Névoa.'},
+  {name:'Kubikiribōchō', min:4, desc:'A gigantesca espada decapitadora de Zabuza Momochi.'},
+  {name:'Samehada', min:5, desc:'A espada viva devoradora de chakra de Kisame Hoshigaki.'},
+];
+const ARMORS = [
+  {name:'Colete da Academia', min:0, desc:'Traje básico usado pelos alunos da Academia Ninja.'},
+  {name:'Colete Chunin de Konoha', min:0, desc:'Colete padrão verde usado por Chunin da Vila da Folha.'},
+  {name:'Colete Jōnin de Konoha', min:1, desc:'Versão reforçada usada por ninjas de elite.'},
+  {name:'Uniforme ANBU', min:2, desc:'Armadura escura das forças especiais de operações secretas.'},
+  {name:'Manto da Akatsuki', min:3, desc:'O icônico manto preto com nuvens vermelhas.'},
+  {name:'Armadura Samurai do País do Ferro', min:4, desc:'Armadura pesada usada pelos samurais de Mifune.'},
+];
+const ACCESSORIES = [
+  {name:'Bandana de Konoha (Hitai-ate)', min:0, desc:'A protetora de testa gravada com o símbolo da Vila da Folha.'},
+  {name:'Luvas de Chakra Médico', min:1, desc:'Luvas usadas por ninjas médicos como Sakura e Tsunade.'},
+  {name:'Anel da Akatsuki', min:3, desc:'Anel de chakra usado por cada integrante da Akatsuki.'},
+  {name:'Colar de Cristal do Primeiro Hokage', min:3, desc:'Colar lendário de Hashirama Senju, herdado por Tsunade.'},
+  {name:'Colar do Sábio dos Seis Caminhos', min:4, desc:'Artefato ancestral ligado ao chakra original de Hagoromo Ōtsutsuki.'},
+];
+const SCROLLS = [
+  {name:'Pergaminho de Selagem Básico', min:0, desc:'Pergaminho de fūinjutsu para técnicas iniciantes.'},
+  {name:'Pergaminho de Contrato de Invocação', min:1, desc:'Registra o pacto de sangue com animais invocadores.'},
+  {name:'Pergaminho Ancestral Uzumaki', min:2, desc:'Conhecimento de selagem transmitido pelo clã Uzumaki.'},
+  {name:'Pergaminho Proibido de Selagem', min:4, desc:'O pergaminho roubado por Naruto da Torre Hokage, guardado pelo Terceiro Hokage.'},
+];
+
+function buildEquipmentList(){
+  const list=[]; let uid=1;
+  function makeSet(items, slot){
+    items.forEach((it,i)=>{
+      RARITIES.forEach((r,ri)=>{
+        if(ri < it.min) return; // itens icônicos só existem a partir de uma raridade mínima
+        list.push({
+          id:'e'+(uid++), name:`${it.name} ${r.name}`, slot, rarity:r.id, flavor: it.desc,
+          statKey:EQUIP_SLOTS[slot].stat,
+          bonus: Math.round((6 + i*4) * r.mult),
+          reqLevel: Math.max(1, i*7 + ri*4),
+          cost: Math.round((30 + i*40) * r.mult),
+        });
+      });
+    });
+  }
+  makeSet(WEAPONS,'arma');
+  makeSet(ARMORS,'armadura');
+  makeSet(ACCESSORIES,'acessorio');
+  makeSet(SCROLLS,'pergaminho');
+  return list;
+}
+
+const MATERIALS = [
+  {id:'ferro', name:'Ferro Bruto', ico:'⛏️'},
+  {id:'chakraCristal', name:'Cristal de Chakra', ico:'💎'},
+  {id:'pergaminhoAntigo', name:'Fragmento de Pergaminho Antigo', ico:'📃'},
+  {id:'essenciaBesta', name:'Essência de Besta com Cauda', ico:'🐉'},
+  {id:'couroFera', name:'Couro de Fera', ico:'🦴'},
+  {id:'tintaEspiritual', name:'Tinta Espiritual', ico:'🖋️'},
+];
+
+/* ---------------- INVOCAÇÕES ---------------- */
+const SUMMONS = [
+  {id:'sapo', name:'Sapo Invocador', ico:'🐸', desc:'Aumenta Força e Chakra máx. Contrato ensinado por Jiraiya.', bonus:{force:0.12,chakra:0.10}, reqLevel:12, mentor:'jiraiya'},
+  {id:'lesma', name:'Lesma Invocadora', ico:'🐌', desc:'Aumenta Vida máx e regeneração. Contrato ensinado por Tsunade.', bonus:{hp:0.20,hpRegen:0.15}, reqLevel:12, mentor:'tsunade'},
+  {id:'cobra', name:'Cobra Invocadora', ico:'🐍', desc:'Aumenta Velocidade e poder de Genjutsu.', bonus:{speed:0.15,intel:0.08}, reqLevel:16, mentor:'orochimaru'},
+  {id:'cachorro', name:'Matilha Ninja', ico:'🐕', desc:'Aumenta Velocidade e precisão em missões de rastreio.', bonus:{speed:0.18}, reqLevel:8, clan:'inuzuka'},
+  {id:'falcao', name:'Falcão Mensageiro', ico:'🦅', desc:'Reduz duração de missões.', bonus:{missionSpeed:0.12}, reqLevel:10},
+  {id:'tartaruga', name:'Tartaruga Gigante', ico:'🐢', desc:'Aumenta Vida máx drasticamente, reduz velocidade de missões.', bonus:{hp:0.30,missionSpeed:-0.05}, reqLevel:24},
+  {id:'inseto', name:'Enxame Kikaichu', ico:'🪲', desc:'Aumenta Controle de Chakra e drena chakra inimigo em combate.', bonus:{chakraControl:0.18}, reqLevel:14, clan:'aburame'},
+  {id:'raposa', name:'Fragmento de Chakra da Raposa', ico:'🦊', desc:'Poder colossal de todas as estatísticas — extremamente raro.', bonus:{force:0.15,speed:0.15,chakra:0.25,hp:0.15}, reqLevel:55},
+];
+
+/* ---------------- MENTORES ---------------- */
+const MENTORS = [
+  {id:'iruka', name:'Iruka Umino', ico:'📗', spec:'Fundamentos', desc:'Ensina os fundamentos da vida ninja.', reqLevel:1, cost:0,
+    reward:{stat:'intel', amount:3}},
+  {id:'kakashi', name:'Kakashi Hatake', ico:'⚡', spec:'Ninjutsu / Sharingan Copiado', desc:'Mestre de mil técnicas, ensina Ninjutsu avançado e o Hiraishin.', reqLevel:14, cost:250,
+    reward:{stat:'chakraControl', amount:10}},
+  {id:'guy', name:'Might Guy', ico:'🥋', spec:'Taijutsu', desc:'O mestre da Folha Verde e Bela ensina Taijutsu extremo.', reqLevel:10, cost:180,
+    reward:{stat:'speed', amount:12}},
+  {id:'kurenai', name:'Kurenai Yuhi', ico:'🌙', spec:'Genjutsu', desc:'Especialista em ilusões, aprimora sua percepção mental.', reqLevel:12, cost:200,
+    reward:{stat:'intel', amount:10}},
+  {id:'asuma', name:'Asuma Sarutobi', ico:'🌬️', spec:'Vento / Kenjutsu', desc:'Ensina afinidade a vento e o uso de facões de chakra.', reqLevel:16, cost:260,
+    reward:{stat:'force', amount:10}},
+  {id:'jiraiya', name:'Jiraiya', ico:'🐸', spec:'Senjutsu / Selos', desc:'Um dos Sannin Lendários — ensina Modo Sábio e Fuinjutsu.', reqLevel:30, cost:900,
+    reward:{stat:'chakra', amount:40}},
+  {id:'tsunade', name:'Tsunade', ico:'💮', spec:'Ninjutsu Médico', desc:'A Sannin médica ensina cura avançada e força monstruosa.', reqLevel:30, cost:900,
+    reward:{stat:'hp', amount:60}},
+  {id:'orochimaru', name:'Orochimaru (secreto)', ico:'🐍', spec:'Técnicas Proibidas', desc:'Conhecimento perigoso e proibido — desbloqueado apenas em segredo.', reqLevel:45, cost:1600, secret:true,
+    reward:{stat:'intel', amount:30}},
+  {id:'killerbee', name:'Killer Bee', ico:'🐝', spec:'Chakra de Besta com Cauda', desc:'Jinchuriki do Hachibi — ensina controle de chakra de bijuu.', reqLevel:52, cost:2400,
+    reward:{stat:'chakra', amount:80}},
+];
+
+/* ---------------- CHEFES ---------------- */
+const BOSSES = [
+  {id:'zabuza', name:'Zabuza Momochi', ico:'🗡️', reqLevel:8,  hp:400,   power:35,  loot:'Névoa Escondida — Fragmento', ryo:200},
+  {id:'gaara', name:'Gaara do Deserto', ico:'🏜️', reqLevel:16, hp:1400,  power:90,  loot:'Areia Selada', ryo:500},
+  {id:'orochimaru_boss', name:'Orochimaru', ico:'🐍', reqLevel:24, hp:3200,  power:160, loot:'Escama de Cobra Amaldiçoada', ryo:1000},
+  {id:'itachi', name:'Itachi Uchiha', ico:'🌑', reqLevel:34, hp:6200,  power:280, loot:'Fragmento do Mangekyou', ryo:2200},
+  {id:'kakuzu', name:'Kakuzu', ico:'💰', reqLevel:38, hp:7400,  power:310, loot:'Coração de Máscara', ryo:2600},
+  {id:'hidan', name:'Hidan', ico:'🔺', reqLevel:38, hp:6800,  power:300, loot:'Fragmento de Jashin', ryo:2600},
+  {id:'deidara', name:'Deidara', ico:'💥', reqLevel:40, hp:7000,  power:320, loot:'Argila Explosiva C3', ryo:2800},
+  {id:'pain', name:'Pain (Caminhos)', ico:'🌧️', reqLevel:50, hp:14000, power:520, loot:'Fragmento do Rinnegan', ryo:5200},
+  {id:'obito', name:'Obito Uchiha', ico:'🌀', reqLevel:58, hp:20000, power:680, loot:'Kamui Selado', ryo:8200},
+  {id:'madara', name:'Madara Uchiha', ico:'🔥', reqLevel:66, hp:34000, power:900, loot:'Chakra dos Seis Caminhos', ryo:14000},
+  {id:'kaguya', name:'Kaguya Ōtsutsuki', ico:'🌕', reqLevel:75, hp:60000, power:1300,loot:'Fragmento Ōtsutsuki', ryo:26000},
+  {id:'kurama', name:'Kurama (Raposa de Nove Caudas)', ico:'🦊', reqLevel:80, hp:90000, power:1700, loot:'Chakra da Raposa', ryo:40000},
+];
+
+/* ---------------- BIJUUS (invocáveis / chakra) ---------------- */
+const BIJUUS = [
+  {id:'shukaku', n:1, name:'Shukaku (Guaxinim de Uma Cauda)', reqLevel:20},
+  {id:'matatabi', n:2, name:'Matatabi (Gato de Duas Caudas)', reqLevel:26},
+  {id:'isobu', n:3, name:'Isobu (Tartaruga de Três Caudas)', reqLevel:32},
+  {id:'sonGoku', n:4, name:'Son Gokū (Macaco de Quatro Caudas)', reqLevel:38},
+  {id:'kokuo', n:5, name:'Kokuō (Cavalo-Baleia de Cinco Caudas)', reqLevel:44},
+  {id:'saiken', n:6, name:'Saiken (Lesma de Seis Caudas)', reqLevel:48},
+  {id:'chomei', n:7, name:'Chōmei (Besouro de Sete Caudas)', reqLevel:54},
+  {id:'gyuki', n:8, name:'Gyūki (Polvo-Boi de Oito Caudas)', reqLevel:60},
+  {id:'kurama_b', n:9, name:'Kurama (Raposa de Nove Caudas)', reqLevel:70},
+];
+
+/* ---------------- CONQUISTAS ---------------- */
+const ACHIEVEMENTS = [
+  {id:'a1', name:'Primeiro Passo', ico:'👣', desc:'Complete sua primeira missão.', check:s=>s.stats.missionsCompleted>=1, bonus:{ryoMult:0.01}},
+  {id:'a2', name:'Genin de Verdade', ico:'🍃', desc:'Alcance o rank Genin.', check:s=>s.level>=5, bonus:{xpMult:0.01}},
+  {id:'a3', name:'Exame Chunin', ico:'⚔️', desc:'Torne-se Chunin.', check:s=>s.level>=15, bonus:{xpMult:0.02}},
+  {id:'a4', name:'Elite Jônin', ico:'🌀', desc:'Alcance o rank Jônin.', check:s=>s.level>=28, bonus:{xpMult:0.02}},
+  {id:'a5', name:'Sombra da Vila', ico:'🎭', desc:'Entre para a ANBU.', check:s=>s.level>=42, bonus:{ryoMult:0.03}},
+  {id:'a6', name:'Vontade de Fogo', ico:'🔥', desc:'Torne-se Hokage.', check:s=>s.level>=60, bonus:{allStat:0.05}},
+  {id:'a7', name:'Estudioso', ico:'📚', desc:'Aprenda 10 jutsus.', check:s=>s.jutsuLearned.length>=10, bonus:{xpMult:0.02}},
+  {id:'a8', name:'Mestre das Técnicas', ico:'🌪️', desc:'Aprenda 50 jutsus.', check:s=>s.jutsuLearned.length>=50, bonus:{xpMult:0.04}},
+  {id:'a9', name:'Enciclopédia Viva', ico:'📖', desc:'Aprenda 120 jutsus.', check:s=>s.jutsuLearned.length>=120, bonus:{xpMult:0.06}},
+  {id:'a10', name:'Caçador de Recompensas', ico:'💰', desc:'Acumule 10.000 ryo.', check:s=>s.stats.totalRyoEarned>=10000, bonus:{ryoMult:0.03}},
+  {id:'a11', name:'Magnata Ninja', ico:'💴', desc:'Acumule 100.000 ryo.', check:s=>s.stats.totalRyoEarned>=100000, bonus:{ryoMult:0.05}},
+  {id:'a12', name:'Trabalhador Incansável', ico:'🛠️', desc:'Treine 500 vezes.', check:s=>s.stats.trainingCount>=500, bonus:{allStat:0.02}},
+  {id:'a13', name:'Terror dos Bandidos', ico:'🗺️', desc:'Complete 100 missões.', check:s=>s.stats.missionsCompleted>=100, bonus:{missionSpeed:0.03}},
+  {id:'a14', name:'Lenda das Missões', ico:'🏆', desc:'Complete 500 missões.', check:s=>s.stats.missionsCompleted>=500, bonus:{missionSpeed:0.05}},
+  {id:'a15', name:'Caçador de Renegados', ico:'🥷', desc:'Derrote seu primeiro chefe.', check:s=>s.stats.bossesDefeated>=1, bonus:{allStat:0.02}},
+  {id:'a16', name:'Exterminador da Akatsuki', ico:'☁️', desc:'Derrote 5 membros da Akatsuki.', check:s=>s.stats.akatsukiDefeated>=5, bonus:{allStat:0.04}},
+  {id:'a17', name:'Domador de Bestas', ico:'🐉', desc:'Domine o chakra de 1 Bijuu.', check:s=>s.bijuuMastered.length>=1, bonus:{chakraMult:0.05}},
+  {id:'a18', name:'Jinchuriki Honorário', ico:'🦊', desc:'Domine o chakra de todos os 9 Bijuus.', check:s=>s.bijuuMastered.length>=9, bonus:{chakraMult:0.20}},
+  {id:'a19', name:'Colecionador', ico:'🎒', desc:'Possua 20 itens no inventário.', check:s=>s.inventory.length>=20, bonus:{craftDiscount:0.03}},
+  {id:'a20', name:'Ferreiro Ninja', ico:'⚒️', desc:'Crie 10 itens na forja.', check:s=>s.stats.itemsCrafted>=10, bonus:{craftDiscount:0.05}},
+  {id:'a21', name:'Despertar Ocular', ico:'👁️', desc:'Desperte um Dōjutsu.', check:s=>!!s.dojutsu.type, bonus:{allStat:0.03}},
+  {id:'a22', name:'Olhos Lendários', ico:'♾️', desc:'Alcance o estágio máximo do seu Dōjutsu.', check:s=>s.dojutsu.stage>=4, bonus:{allStat:0.08}},
+  {id:'a23', name:'Reencarnação', ico:'♻️', desc:'Realize seu primeiro Prestígio.', check:s=>s.prestige.count>=1, bonus:{xpMult:0.05}},
+  {id:'a24', name:'Ciclo Eterno', ico:'🔄', desc:'Realize 5 Prestígios.', check:s=>s.prestige.count>=5, bonus:{xpMult:0.10}},
+  {id:'a25', name:'Guerreiro da Grande Guerra', ico:'🎌', desc:'Vença a Quarta Grande Guerra Ninja.', check:s=>s.stats.warsWon>=1, bonus:{allStat:0.05}},
+];
+
+/* ---------------- COMBATE: mapeamento categoria -> atributo ---------------- */
+const CATEGORY_STAT = {
+  taijutsu:'force', kenjutsu:'force', ninjutsu:'chakraControl',
+  genjutsu:'intel', fuinjutsu:'intel', senjutsu:'chakra', medico:'intel'
+};
+
+/* ---------------- TALENTOS (árvore de prestígio) ---------------- */
+
+const TALENTS = [
+  {id:'t1', name:'Fluxo Constante', ico:'💧', desc:'+10% ganho de XP por ponto (máx 10).', max:10, costBase:1, effect:'xpMult', per:0.10},
+  {id:'t2', name:'Bolso Cheio', ico:'💰', desc:'+10% ryo ganho por ponto (máx 10).', max:10, costBase:1, effect:'ryoMult', per:0.10},
+  {id:'t3', name:'Corpo Treinado', ico:'💪', desc:'+5% em todos atributos por ponto (máx 10).', max:10, costBase:2, effect:'allStat', per:0.05},
+  {id:'t4', name:'Reservas Profundas', ico:'🌊', desc:'+8% Chakra máx por ponto (máx 10).', max:10, costBase:1, effect:'chakraMult', per:0.08},
+  {id:'t5', name:'Disciplina Rígida', ico:'⏱️', desc:'-4% tempo de treino por ponto (máx 8).', max:8, costBase:2, effect:'trainSpeed', per:0.04},
+  {id:'t6', name:'Rota Otimizada', ico:'🗺️', desc:'-4% duração de missão por ponto (máx 8).', max:8, costBase:2, effect:'missionSpeed', per:0.04},
+  {id:'t7', name:'Comerciante Astuto', ico:'🏪', desc:'-4% custo de crafting por ponto (máx 8).', max:8, costBase:2, effect:'craftDiscount', per:0.04},
+  {id:'t8', name:'Memória Ancestral', ico:'🧬', desc:'-4% custo de XP para jutsus por ponto (máx 8).', max:8, costBase:2, effect:'jutsuDiscount', per:0.04},
+  {id:'t9', name:'Chakra Herdado', ico:'🌀', desc:'Começa com +1 nível de afinidade elemental em tudo por ponto (máx 10).', max:10, costBase:1, effect:'startAffinity', per:1},
+  {id:'t10', name:'Legado Duradouro', ico:'🏯', desc:'Mantém 10% adicional de níveis ao prestigiar por ponto (máx 5).', max:5, costBase:3, effect:'keepLevel', per:0.10},
+];
+
+/* =========================================================================
+   ESTADO DO JOGO
+   ========================================================================= */
+const SAVE_KEY = 'caminhoNinjaSave_v1';
+
+let JUTSU_LIST = buildJutsuList();
+let MISSION_LIST = buildMissionList();
+let EQUIP_LIST = buildEquipmentList();
+
+function freshState(){
+  return {
+    name:'Ninja Sem Nome',
+    clan:null,
+    level:1, xp:0,
+    stamina:100, staminaMax:100,
+    ryo:150,
+    baseGain:{ force:1, speed:1, intel:1, chakraControl:1 }, // per training click
+    elementAffinity:{}, // key -> 0-100
+    jutsuLearned:[], // ids
+    loadout:[], // até 4 jutsus escolhidos para batalha
+    equipped:{ arma:null, armadura:null, acessorio:null, pergaminho:null, invocacao:null },
+    inventory:[], // {itemId, qty} for equipment; materials handled separately
+    materials:{}, // matId -> qty
+    dojutsu:{ type:null, stage:0 }, // stage 0=none
+    mentorsLearned:[],
+    mentorCooldown:{},
+    bijuuMastered:[],
+    activeMissions:[], // {missionId, startedAt, endsAt}
+    missionSlots:1,
+    bossesDefeatedList:[],
+    achievementsUnlocked:[],
+    talents:{}, // talentId -> points bought
+    prestige:{ count:0, points:0 },
+    flags:{ chuninExamDone:false, warDone:false, akatsukiEncounters:0, anbuJoined:false, rinneganEventSeen:false },
+    ownedSummons:[],
+    stats:{
+      trainingCount:0, missionsCompleted:0, totalRyoEarned:0, totalXpEarned:0,
+      bossesDefeated:0, akatsukiDefeated:0, itemsCrafted:0, warsWon:0, playtimeSec:0,
+      hp:50, hpMax:50, chakra:50, chakraMax:50, force:10, speed:10, intel:10, chakraControl:10
+    },
+    lastTick: Date.now(),
+    createdAt: Date.now(),
+  };
+}
+
+let S = freshState();
+let lastSaveToast = 0;
+
+/* ---- derived multipliers from talents / clan / achievements / dojutsu ---- */
+function talentEffect(effect){
+  let total=0;
+  TALENTS.filter(t=>t.effect===effect).forEach(t=>{
+    const pts = S.talents[t.id]||0;
+    total += pts*t.per;
+  });
+  return total;
+}
+function achievementEffect(effect){
+  let total=0;
+  ACHIEVEMENTS.forEach(a=>{
+    if(S.achievementsUnlocked.includes(a.id) && a.bonus[effect]) total+=a.bonus[effect];
+  });
+  return total;
+}
+function getMult(effect){
+  return 1 + talentEffect(effect) + achievementEffect(effect);
+}
+function clanOf(){ return S.clan ? CLANS[S.clan] : null; }
+
+function equippedBonusFor(statKey){
+  let total=0;
+  Object.values(S.equipped).forEach(itemId=>{
+    if(!itemId) return;
+    const item = EQUIP_LIST.find(e=>e.id===itemId);
+    if(item && item.statKey===statKey) total += item.bonus;
+  });
+  return total;
+}
+function summonBonus(key){
+  if(!S.equipped.invocacao) return 0;
+  const sm = SUMMONS.find(x=>x.id===S.equipped.invocacao);
+  return (sm && sm.bonus[key]) ? sm.bonus[key] : 0;
+}
+
+function dojutsuBonusMult(){
+  if(!S.dojutsu.type) return {taijutsu:1, genjutsu:1, ninjutsu:1, crit:0};
+  const stage = S.dojutsu.stage;
+  if(S.dojutsu.type==='sharingan'){
+    return {taijutsu:1, genjutsu:1+stage*0.25, ninjutsu:1+stage*0.15, crit:stage*0.04};
+  }
+  if(S.dojutsu.type==='byakugan'){
+    return {taijutsu:1+stage*0.3, genjutsu:1, ninjutsu:1, crit:stage*0.05};
+  }
+  if(S.dojutsu.type==='rinnegan'){
+    return {taijutsu:1+stage*0.2, genjutsu:1+stage*0.2, ninjutsu:1+stage*0.3, crit:stage*0.06};
+  }
+  return {taijutsu:1, genjutsu:1, ninjutsu:1, crit:0};
+}
+
+function recalcStats(){
+  const clan = clanOf();
+  const allStatMult = getMult('allStat');
+  ['force','speed','intel','chakraControl'].forEach(k=>{
+    let base = S.stats[k];
+    S.stats[k] = base; // base already tracks raw trained value; display applies mult separately via effectiveStat()
+  });
+}
+function effectiveStat(key){
+  const clan = clanOf();
+  let val = S.stats[key];
+  if(clan && clan.bonus[key]) val *= (1+clan.bonus[key]);
+  val += equippedBonusFor(key);
+  val *= getMult('allStat');
+  if(key==='chakraControl'){ /* no dojutsu direct */ }
+  return Math.round(val*10)/10;
+}
+function effectiveHpMax(){
+  const clan = clanOf();
+  let val = S.stats.hpMax;
+  if(clan && clan.bonus.hp) val *= (1+clan.bonus.hp);
+  val += equippedBonusFor('hp');
+  val += summonBonus('hp')*val;
+  val *= getMult('allStat');
+  return Math.round(val);
+}
+function effectiveChakraMax(){
+  const clan = clanOf();
+  let val = S.stats.chakraMax;
+  if(clan && clan.bonus.chakra) val *= (1+clan.bonus.chakra);
+  val += summonBonus('chakra')*val;
+  val *= getMult('chakraMult');
+  val *= getMult('allStat');
+  return Math.round(val);
+}
+
+function xpToNext(level){
+  return Math.round(45 * Math.pow(level,1.55) + 20);
+}
+
+function saveGame(silent){
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+    if(!silent){
+      toast('Jogo salvo com sucesso.', 'Salvo', 'item');
+    }
+  }catch(e){ console.error('erro ao salvar', e); }
+}
+function loadGame(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return false;
+    const loaded = JSON.parse(raw);
+    S = Object.assign(freshState(), loaded);
+    // deep-merge nested defaults for safety with older saves
+    S.stats = Object.assign(freshState().stats, loaded.stats||{});
+    S.flags = Object.assign(freshState().flags, loaded.flags||{});
+    S.equipped = Object.assign(freshState().equipped, loaded.equipped||{});
+    S.prestige = Object.assign(freshState().prestige, loaded.prestige||{});
+    return true;
+  }catch(e){ console.error('erro ao carregar', e); return false; }
+}
+function hardReset(){
+  localStorage.removeItem(SAVE_KEY);
+  S = freshState();
+}
+
+/* =========================================================================
+   RENDERIZAÇÃO / UI
+   ========================================================================= */
+const NAV_ITEMS = [
+  {id:'visao', label:'Visão Geral', ico:'🏠', group:'Ninja'},
+  {id:'treino', label:'Treinamento', ico:'🥋', group:'Ninja'},
+  {id:'missoes', label:'Missões', ico:'📜', group:'Ninja'},
+  {id:'jutsus', label:'Jutsus', ico:'🌀', group:'Técnicas'},
+  {id:'cla', label:'Clã & Elementos', ico:'🏮', group:'Técnicas'},
+  {id:'dojutsu', label:'Dōjutsu', ico:'👁️', group:'Técnicas'},
+  {id:'inventario', label:'Inventário', ico:'🎒', group:'Recursos'},
+  {id:'equip', label:'Loja & Forja', ico:'⚒️', group:'Recursos'},
+  {id:'invocacoes', label:'Invocações', ico:'🐸', group:'Recursos'},
+  {id:'mentores', label:'Mentores', ico:'🎓', group:'Recursos'},
+  {id:'eventos', label:'Eventos & Chefes', ico:'⚔️', group:'Mundo'},
+  {id:'talentos', label:'Talentos & Prestígio', ico:'🌌', group:'Mundo'},
+  {id:'conquistas', label:'Conquistas & Stats', ico:'🏆', group:'Mundo'},
+];
+let currentScreen = 'visao';
+
+function buildShell(){
+  const app = document.getElementById('app');
+  let groups = [];
+  NAV_ITEMS.forEach(n=>{ if(!groups.includes(n.group)) groups.push(n.group); });
+  let sidebarHtml = `<div class="brand">
+      <div class="brand-emblem">忍</div>
+      <div class="brand-text"><b>Caminho Ninja</b><span>RPG Incremental</span></div>
+    </div>`;
+  groups.forEach(g=>{
+    sidebarHtml += `<div class="nav-group-label">${g}</div>`;
+    NAV_ITEMS.filter(n=>n.group===g).forEach(n=>{
+      sidebarHtml += `<div class="nav-btn" id="nav-${n.id}" onclick="switchScreen('${n.id}')">
+        <span class="ico">${n.ico}</span><span>${n.label}</span></div>`;
+    });
+  });
+  sidebarHtml += `<div class="nav-group-label">Sistema</div>
+    <div class="nav-btn" onclick="saveGame(false)"><span class="ico">💾</span><span>Salvar</span></div>
+    <div class="nav-btn" onclick="openExport()"><span class="ico">📤</span><span>Exportar/Importar</span></div>
+    <div class="nav-btn" onclick="confirmHardReset()"><span class="ico">🗑️</span><span>Apagar Progresso</span></div>`;
+
+  app.innerHTML = `
+    <div class="sidebar">${sidebarHtml}</div>
+    <div class="main">
+      <div class="topbar" id="topbar"></div>
+      <div class="content" id="content">
+        ${NAV_ITEMS.map(n=>`<div class="screen" id="screen-${n.id}"></div>`).join('')}
+      </div>
+    </div>
+    <div class="mobile-tabbar" id="mobileTabbar">
+      ${NAV_ITEMS.map(n=>`<div class="mnav" id="mnav-${n.id}" onclick="switchScreen('${n.id}')"><span class="ico">${n.ico}</span><span>${n.label.split(' ')[0]}</span></div>`).join('')}
+    </div>
+  `;
+}
+
+function switchScreen(id){
+  currentScreen = id;
+  NAV_ITEMS.forEach(n=>{
+    const btn = document.getElementById('nav-'+n.id);
+    if(btn) btn.classList.toggle('active', n.id===id);
+    const mbtn = document.getElementById('mnav-'+n.id);
+    if(mbtn) mbtn.classList.toggle('active', n.id===id);
+    const scr = document.getElementById('screen-'+n.id);
+    if(scr) scr.classList.toggle('active', n.id===id);
+  });
+  renderScreen(id);
+}
+
+function renderScreen(id){
+  switch(id){
+    case 'visao': renderVisao(); break;
+    case 'treino': renderTreino(); break;
+    case 'missoes': renderMissoes(); break;
+    case 'jutsus': renderJutsus(); break;
+    case 'cla': renderCla(); break;
+    case 'dojutsu': renderDojutsu(); break;
+    case 'inventario': renderInventario(); break;
+    case 'equip': renderEquip(); break;
+    case 'invocacoes': renderInvocacoes(); break;
+    case 'mentores': renderMentores(); break;
+    case 'eventos': renderEventos(); break;
+    case 'talentos': renderTalentos(); break;
+    case 'conquistas': renderConquistas(); break;
+  }
+}
+function renderAll(){ renderTopbar(); renderScreen(currentScreen); }
+
+/* ------------ toast / modal ------------ */
+function toast(msg, title, type){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast'+(type?(' '+type):'');
+  el.innerHTML = `<b>${title||'Info'}</b><div>${msg}</div>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.animation='fadeout .3s forwards'; setTimeout(()=>el.remove(),300); }, 3400);
+}
+function openModal(html, extraClass){
+  document.getElementById('modalContent').innerHTML = html;
+  const box = document.getElementById('modalBox');
+  box.className = extraClass ? ('modal '+extraClass) : 'modal';
+  document.getElementById('modalBg').classList.add('active');
+}
+function closeModal(){ document.getElementById('modalBg').classList.remove('active'); }
+
+function confirmHardReset(){
+  openModal(`<h2>⚠️ Apagar Progresso</h2>
+    <p class="small muted">Isso apagará permanentemente todo o seu progresso, incluindo prestígios. Esta ação não pode ser desfeita.</p>
+    <div class="flex gap mt14">
+      <button class="btn danger" onclick="hardReset();closeModal();location.reload();">Sim, apagar tudo</button>
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+    </div>`);
+}
+function openExport(){
+  const data = btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+  openModal(`<h2>📤 Exportar / Importar</h2>
+    <p class="small muted">Copie o código abaixo para salvar seu progresso, ou cole um código para importar.</p>
+    <textarea id="exportArea" style="width:100%;height:110px;background:var(--bg-0);color:var(--text-1);border:1px solid var(--line-soft);border-radius:8px;padding:8px;font-size:10px;">${data}</textarea>
+    <div class="flex gap mt14">
+      <button class="btn primary small" onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('exportArea').value);toast('Código copiado.','Exportado','item')">Copiar</button>
+      <button class="btn small" onclick="doImport()">Importar do texto acima</button>
+    </div>`);
+}
+function doImport(){
+  try{
+    const val = document.getElementById('exportArea').value.trim();
+    const parsed = JSON.parse(decodeURIComponent(escape(atob(val))));
+    S = Object.assign(freshState(), parsed);
+    saveGame(true); closeModal(); renderAll();
+    toast('Progresso importado com sucesso.','Importado','item');
+  }catch(e){ toast('Código inválido.','Erro','warn'); }
+}
+
+/* ------------ topbar ------------ */
+function renderTopbar(){
+  const tb = document.getElementById('topbar');
+  const rank = rankForLevel(S.level);
+  const nxp = xpToNext(S.level);
+  const hpMax = effectiveHpMax(), chMax = effectiveChakraMax();
+  tb.innerHTML = `
+    <div class="top-stat">
+      <span class="lbl">${rank.ico} ${rank.name}</span>
+      <span class="val">Nv. ${S.level}</span>
+    </div>
+    <div class="xp-wrap">
+      <div class="xp-top"><span>XP</span><span>${Math.floor(S.xp)} / ${nxp}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,S.xp/nxp*100)}%"></div></div>
+    </div>
+    <div class="xp-wrap">
+      <div class="xp-top"><span>❤️ Vida</span><span>${Math.floor(S.stats.hp)} / ${hpMax}</span></div>
+      <div class="bar-track"><div class="bar-fill hp" style="width:${Math.min(100,S.stats.hp/hpMax*100)}%"></div></div>
+    </div>
+    <div class="xp-wrap">
+      <div class="xp-top"><span>🌀 Chakra</span><span>${Math.floor(S.stats.chakra)} / ${chMax}</span></div>
+      <div class="bar-track"><div class="bar-fill chakra" style="width:${Math.min(100,S.stats.chakra/chMax*100)}%"></div></div>
+    </div>
+    <div class="xp-wrap" style="max-width:140px;">
+      <div class="xp-top"><span>⚡ Estamina</span><span>${Math.floor(S.stamina)} / ${S.staminaMax}</span></div>
+      <div class="bar-track"><div class="bar-fill stam" style="width:${Math.min(100,S.stamina/S.staminaMax*100)}%"></div></div>
+    </div>
+    <div class="top-stat gold"><span class="lbl">💰 Ryo</span><span class="val">${formatNum(S.ryo)}</span></div>
+  `;
+}
+function formatNum(n){
+  n = Math.floor(n);
+  if(n>=1e12) return (n/1e12).toFixed(2)+'T';
+  if(n>=1e9) return (n/1e9).toFixed(2)+'B';
+  if(n>=1e6) return (n/1e6).toFixed(2)+'M';
+  if(n>=1e4) return (n/1e3).toFixed(1)+'K';
+  return n.toLocaleString('pt-BR');
+}
+
+/* ------------ VISÃO GERAL ------------ */
+function renderVisao(){
+  const el = document.getElementById('screen-visao');
+  const clan = clanOf();
+  const rank = rankForLevel(S.level);
+  const nr = nextRank(S.level);
+  el.innerHTML = `
+  <h1 class="screen-title">Bem-vindo(a), ${escapeHtml(S.name)}</h1>
+  <p class="screen-sub">${rank.ico} ${rank.name}${clan?(' • Clã '+clan.name):''} — Nível ${S.level}</p>
+  <div class="grid cols-3">
+    <div class="card">
+      <h3><span class="ico">📊</span>Atributos</h3>
+      ${['hp','chakra'].map(k=>`
+        <div class="stat-row"><span class="name">${k==='hp'?'❤️ Vida':'🌀 Chakra'}</span><span class="value">${Math.floor(S.stats[k])}/${k==='hp'?effectiveHpMax():effectiveChakraMax()}</span></div>`).join('')}
+      ${['force','speed','intel','chakraControl'].map(k=>`
+        <div class="stat-row"><span class="name">${statLabel(k)}</span><span class="value">${effectiveStat(k)}</span></div>`).join('')}
+    </div>
+    <div class="card">
+      <h3><span class="ico">🎯</span>Progresso de Rank</h3>
+      <p class="small muted">${nr ? `Próximo rank: <b style="color:var(--orange)">${nr.name}</b> no nível ${nr.lvl}` : 'Você alcançou o rank máximo: Hokage!'}</p>
+      <div class="prog-mini"><i style="width:${nr?Math.min(100,(S.level/nr.lvl*100)):100}%"></i></div>
+      <hr class="section-divider">
+      <div class="stat-row"><span class="name">Missões concluídas</span><span class="value">${S.stats.missionsCompleted}</span></div>
+      <div class="stat-row"><span class="name">Jutsus aprendidos</span><span class="value">${S.jutsuLearned.length}/${JUTSU_LIST.length}</span></div>
+      <div class="stat-row"><span class="name">Chefes derrotados</span><span class="value">${S.stats.bossesDefeated}</span></div>
+      <div class="stat-row"><span class="name">Prestígios</span><span class="value">${S.prestige.count}</span></div>
+    </div>
+    <div class="card">
+      <h3><span class="ico">👁️</span>Dōjutsu</h3>
+      ${S.dojutsu.type ? `<p class="small">${dojutsuName(S.dojutsu.type)} — Estágio ${S.dojutsu.stage}/4</p>
+        <div class="prog-mini"><i style="width:${S.dojutsu.stage/4*100}%"></i></div>`
+        : `<p class="small muted">Nenhum Dōjutsu despertado ainda. Consulte a aba Dōjutsu para saber como despertar.</p>`}
+      <hr class="section-divider">
+      <h3 style="margin-bottom:6px;"><span class="ico">🎒</span>Equipado</h3>
+      ${Object.keys(EQUIP_SLOTS).map(sk=>{
+        const it = S.equipped[sk] ? EQUIP_LIST.find(e=>e.id===S.equipped[sk]) : null;
+        return `<div class="stat-row"><span class="name">${EQUIP_SLOTS[sk].ico} ${EQUIP_SLOTS[sk].name}</span><span class="value" style="font-size:11px;">${it?it.name:'—'}</span></div>`;
+      }).join('')}
+    </div>
+  </div>
+  <div class="grid cols-2 mt14">
+    <div class="card">
+      <h3><span class="ico">⚔️</span>Ações Rápidas</h3>
+      <div class="flex gap wrap">
+        <button class="btn primary" onclick="switchScreen('treino')">Treinar agora</button>
+        <button class="btn chakra" onclick="switchScreen('missoes')">Ver missões</button>
+        <button class="btn" onclick="switchScreen('jutsus')">Aprender jutsu</button>
+        <button class="btn" onclick="switchScreen('eventos')">Eventos do mundo</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="ico">🔔</span>Missões em Andamento</h3>
+      ${S.activeMissions.length===0?'<p class="small muted">Nenhuma missão ativa no momento.</p>':
+        S.activeMissions.map(am=>{
+          const m = MISSION_LIST.find(x=>x.id===am.missionId);
+          const pct = Math.min(100,(Date.now()-am.startedAt)/(am.endsAt-am.startedAt)*100);
+          return `<div class="stat-row" style="display:block;"><div class="flex between"><span class="name">${m.name} <span class="tag ${m.tag}">${m.rank}</span></span></div>
+          <div class="prog-mini"><i style="width:${pct}%"></i></div></div>`;
+        }).join('')}
+    </div>
+  </div>`;
+}
+function statLabel(k){
+  const map = {force:'💪 Força', speed:'🏃 Velocidade', intel:'🧠 Inteligência', chakraControl:'🎯 Controle de Chakra'};
+  return map[k]||k;
+}
+function dojutsuName(t){
+  return {sharingan:'Sharingan', byakugan:'Byakugan', rinnegan:'Rinnegan'}[t]||t;
+}
+function escapeHtml(s){ const d=document.createElement('div'); d.innerText=s; return d.innerHTML; }
+
+/* ------------ TREINAMENTO ------------ */
+const TRAININGS = [
+  {id:'fisico', name:'Treino Físico', ico:'💪', stat:'force', desc:'Flexões, corridas e golpes contra troncos de madeira.', stamina:8},
+  {id:'agilidade', name:'Treino de Agilidade', ico:'🏃', stat:'speed', desc:'Corridas em árvores e desvios cronometrados.', stamina:8},
+  {id:'mental', name:'Estudo Estratégico', ico:'🧠', stat:'intel', desc:'Estudo de táticas, história ninja e análise de batalhas.', stamina:6},
+  {id:'chakra', name:'Meditação de Chakra', ico:'🌀', stat:'chakraControl', desc:'Controle fino do fluxo de chakra através do corpo.', stamina:6},
+  {id:'vitalidade', name:'Condicionamento Vital', ico:'❤️', stat:'hpMax', desc:'Fortalece o corpo, aumentando a vida máxima.', stamina:10},
+  {id:'reserva', name:'Expansão de Chakra', ico:'💠', stat:'chakraMax', desc:'Exercícios respiratórios que expandem as reservas de chakra.', stamina:10},
+];
+function renderTreino(){
+  const el = document.getElementById('screen-treino');
+  const autoOn = S.talents['t5']!==undefined || true;
+  el.innerHTML = `
+  <h1 class="screen-title">Treinamento</h1>
+  <p class="screen-sub">Gaste estamina para evoluir seus atributos. Estamina regenera com o tempo.</p>
+  <div class="grid auto">
+    ${TRAININGS.map(t=>{
+      const isMax = ['hpMax','chakraMax'].includes(t.stat);
+      const cur = isMax ? S.stats[t.stat] : effectiveStat(t.stat);
+      const gain = trainingGainPreview(t);
+      return `<div class="card">
+        <h3><span class="ico">${t.ico}</span>${t.name}</h3>
+        <p class="card-sub">${t.desc}</p>
+        <div class="stat-row"><span class="name">Atual</span><span class="value">${Math.round(cur*10)/10}</span></div>
+        <div class="stat-row"><span class="name">Ganho por treino</span><span class="value gain">+${gain}</span></div>
+        <div class="stat-row"><span class="name">Custo</span><span class="value">${Math.round(trainingCost(t))} ⚡</span></div>
+        <button class="btn primary full mt8" onclick="doTraining('${t.id}')" ${S.stamina<trainingCost(t)?'disabled':''}>Treinar</button>
+      </div>`;
+    }).join('')}
+  </div>
+  <div class="card mt14">
+    <h3><span class="ico">📈</span>Estatísticas de Treino</h3>
+    <div class="stat-row"><span class="name">Total de treinos realizados</span><span class="value">${S.stats.trainingCount}</span></div>
+    <div class="stat-row"><span class="name">Regeneração de estamina</span><span class="value">${staminaRegenPerSec().toFixed(2)}/s</span></div>
+  </div>`;
+}
+function trainingCost(t){
+  return t.stamina * (1 - talentEffect('trainSpeed'));
+}
+function trainingGainPreview(t){
+  let g = S.baseGain[t.stat] || 1;
+  if(['hpMax','chakraMax'].includes(t.stat)) g = 1 + Math.floor(S.level/5);
+  return Math.round(g*10)/10;
+}
+function staminaRegenPerSec(){ return 0.6 + S.level*0.02; }
+
+/* ------------ MISSÕES ------------ */
+let missionFilter = 'D';
+function renderMissoes(){
+  const el = document.getElementById('screen-missoes');
+  const available = MISSION_LIST.filter(m=>m.rank===missionFilter);
+  el.innerHTML = `
+  <h1 class="screen-title">Missões</h1>
+  <p class="screen-sub">Aceite missões para ganhar XP, ryo e itens. Slots de missão simultâneos: ${S.missionSlots} (${S.activeMissions.length} em uso).</p>
+  <div class="pillbar">
+    ${MISSION_RANKS.map(r=>`<div class="pill ${missionFilter===r?'active':''}" onclick="missionFilter='${r}';renderMissoes();">Rank ${r}</div>`).join('')}
+  </div>
+  <div class="grid auto">
+    ${available.map(m=>{
+      const locked = S.level < m.minLevel;
+      const active = S.activeMissions.find(a=>a.missionId===m.id);
+      let inner;
+      if(active){
+        const pct = Math.min(100,(Date.now()-active.startedAt)/(active.endsAt-active.startedAt)*100);
+        const remain = Math.max(0, Math.ceil((active.endsAt-Date.now())/1000));
+        inner = `<div class="prog-mini"><i style="width:${pct}%"></i></div>
+          <p class="small muted mt8">${remain}s restantes</p>
+          ${pct>=100?`<button class="btn primary full mt8" onclick="collectMission('${active.id}')">Coletar Recompensa</button>`:''}`;
+      } else {
+        inner = `<button class="btn ${locked?'':'chakra'} full mt8" onclick="startMission('${m.id}')" ${locked||S.activeMissions.length>=S.missionSlots||S.stamina<m.stamina?'disabled':''}>
+          ${locked?'Nível insuficiente':'Aceitar Missão'}</button>`;
+      }
+      return `<div class="card ${locked?'':''}">
+        <h3><span class="tag ${m.tag}">${m.rank}</span> ${m.name}</h3>
+        <p class="card-sub">Requer nível ${m.minLevel} • Duração ${m.duration}s • Custo ${m.stamina}⚡</p>
+        <div class="stat-row"><span class="name">Recompensa XP</span><span class="value gain">+${formatNum(m.xp)}</span></div>
+        <div class="stat-row"><span class="name">Recompensa Ryo</span><span class="value" style="color:var(--gold)">+${formatNum(m.ryo)}</span></div>
+        <div class="stat-row"><span class="name">Chance de item</span><span class="value">${Math.round(m.dropChance*100)}%</span></div>
+        ${inner}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+/* ------------ JUTSUS ------------ */
+let jutsuFilter = 'todos';
+function renderJutsus(){
+  const el = document.getElementById('screen-jutsus');
+  const cats = ['todos',...Object.keys(CATS)];
+  let list = JUTSU_LIST;
+  if(jutsuFilter!=='todos') list = list.filter(j=>j.cat===jutsuFilter);
+  el.innerHTML = `
+  <h1 class="screen-title">Jutsus</h1>
+  <p class="screen-sub">${S.jutsuLearned.length} de ${JUTSU_LIST.length} técnicas aprendidas. Gaste XP acumulado para aprender novas técnicas.</p>
+  <div class="pillbar">
+    ${cats.map(c=>`<div class="pill ${jutsuFilter===c?'active':''}" onclick="jutsuFilter='${c}';renderJutsus();">${c==='todos'?'Todos':CATS[c]}</div>`).join('')}
+  </div>
+  <div class="grid auto">
+    ${list.map(j=>renderJutsuCard(j)).join('')}
+  </div>`;
+}
+function jutsuReqMet(j){
+  const req = j.req||{};
+  if(req.level && S.level < req.level) return false;
+  if(req.clan && S.clan !== req.clan) return false;
+  if(req.mentor && !S.mentorsLearned.includes(req.mentor)) return false;
+  if(req.stat && effectiveStat(req.stat) < req.min) return false;
+  if(req.dojutsuStage){
+    const stages = {sharingan_3:['sharingan',3],sharingan_mk:['sharingan',4],rinnegan:['rinnegan',1]};
+    const need = stages[req.dojutsuStage];
+    if(need){ if(S.dojutsu.type!==need[0] || S.dojutsu.stage<need[1]) return false; }
+  }
+  if(req.elementAff){
+    for(const k in req.elementAff){ if((S.elementAffinity[k]||0) < req.elementAff[k]) return false; }
+  }
+  return true;
+}
+function jutsuXpCost(j){
+  return Math.round((30 + j.tier*35) * (1-talentEffect('jutsuDiscount')));
+}
+function renderJutsuCard(j){
+  const learned = S.jutsuLearned.includes(j.id);
+  const canLearn = jutsuReqMet(j);
+  const cost = jutsuXpCost(j);
+  return `<div class="list-item ${learned?'learned':(canLearn?'':'locked')}" style="display:block;">
+    <div class="li-title">${j.name} <span class="tag ${j.rankLetter.toLowerCase()}">${j.rankLetter}</span>
+      ${j.element?`<span class="small muted">${ALL_ELEMENTS[j.element]?ALL_ELEMENTS[j.element].ico:''}</span>`:''}
+      <span class="small muted" style="margin-left:auto;">${CATS[j.cat]}</span></div>
+    <div class="li-desc">${j.desc}</div>
+    <div class="flex between mt8" style="align-items:center;">
+      <span class="small muted">Custo chakra: ${j.chakra} ${(!learned)?`• Custo XP p/ aprender: ${cost}`:''}</span>
+      ${learned?'<span class="small" style="color:var(--green);font-weight:700;">✔ Aprendido</span>':
+        `<button class="btn small ${canLearn?'primary':''}" onclick="learnJutsu('${j.id}')" ${(!canLearn || S.xp<cost)?'disabled':''}>Aprender</button>`}
+    </div>
+  </div>`;
+}
+
+/* ------------ CLÃ & ELEMENTOS ------------ */
+function renderCla(){
+  const el = document.getElementById('screen-cla');
+  el.innerHTML = `
+  <h1 class="screen-title">Clã & Elementos</h1>
+  <p class="screen-sub">${S.clan? 'Seu clã foi escolhido no início da jornada.' : 'Escolha um clã para receber bônus exclusivos permanentes.'}</p>
+  <div class="grid cols-3">
+    ${Object.keys(CLANS).map(ck=>{
+      const c = CLANS[ck];
+      const sel = S.clan===ck;
+      return `<div class="clan-card ${sel?'selected':''}" onclick="${S.clan?'':`chooseClan('${ck}')`}">
+        <h4>${c.ico} ${c.name}</h4>
+        <p>${c.desc}</p>
+        <p class="mt8" style="color:var(--orange);font-weight:600;">${c.bonus.statLabel}</p>
+        <p class="muted" style="font-size:10px;">${c.passive}</p>
+        ${sel?'<p style="color:var(--green);font-weight:700;font-size:11px;margin-top:6px;">✔ Clã Atual</p>':''}
+      </div>`;
+    }).join('')}
+  </div>
+  <hr class="section-divider">
+  <h1 class="screen-title" style="font-size:18px;">Afinidades Elementais</h1>
+  <p class="screen-sub">Treine afinidades usando jutsus do elemento correspondente. Combine dois elementos base no nível 20+ para desbloquear elementos avançados.</p>
+  <div class="grid cols-4">
+    ${Object.keys(BASE_ELEMENTS).concat(Object.keys(YIN_YANG)).map(ek=>renderAffinityOrb(ek)).join('')}
+  </div>
+  <h3 class="mt14" style="font-size:13px;">Elementos Avançados (combinação)</h3>
+  <div class="grid cols-3 mt8">
+    ${Object.keys(COMBO_ELEMENTS).map(ek=>{
+      const el2 = COMBO_ELEMENTS[ek];
+      const unlocked = comboUnlocked(ek);
+      const aff = S.elementAffinity[ek]||0;
+      return `<div class="card">
+        <h3><span class="ico">${el2.ico}</span>${el2.name}</h3>
+        <p class="card-sub">Requer: ${el2.req.map(r=>BASE_ELEMENTS[r].name.split(' (')[0]).join(' + ')} (nível 20+ cada)</p>
+        ${unlocked ? `<div class="stat-row"><span class="name">Afinidade</span><span class="value">${Math.round(aff)}/100</span></div>
+          <div class="prog-mini"><i style="width:${aff}%"></i></div>`
+          : `<button class="btn small mt8" onclick="tryUnlockCombo('${ek}')">Tentar Despertar</button>`}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function renderAffinityOrb(ek){
+  const el2 = ALL_ELEMENTS[ek];
+  const aff = Math.round(S.elementAffinity[ek]||0);
+  return `<div class="card" style="text-align:center;">
+    <div class="affinity-orb" style="border-color:${el2.color};box-shadow:0 0 12px ${el2.color}55;">${el2.ico}</div>
+    <div class="affinity-wrap">${el2.name.split(' (')[0]}<b>${aff}/100</b></div>
+    <div class="prog-mini"><i style="width:${aff}%;background:${el2.color};"></i></div>
+    <button class="btn small full mt8" onclick="trainAffinity('${ek}')" ${S.stamina<5?'disabled':''}>Treinar (5⚡)</button>
+  </div>`;
+}
+function comboUnlocked(ek){ return (S.elementAffinity[ek]||0) > 0; }
+
+/* ------------ DŌJUTSU ------------ */
+const DOJUTSU_STAGES = {
+  sharingan:['Nenhum','Sharingan de 1 Tomoe','Sharingan de 2 Tomoe','Sharingan de 3 Tomoe (Completo)','Mangekyou Sharingan'],
+  byakugan:['Nenhum','Byakugan Desperto','Byakugan Treinado','Byakugan Avançado','Byakugan Perfeito (Tenseigan)'],
+  rinnegan:['Nenhum','Rinnegan Desperto','Caminho Parcial','Seis Caminhos Menores','Seis Caminhos Completo'],
+};
+function renderDojutsu(){
+  const el = document.getElementById('screen-dojutsu');
+  const clan = clanOf();
+  let unlockInfo = '';
+  if(!S.dojutsu.type){
+    if(clan && clan.dojutsu){
+      unlockInfo = `<div class="card"><h3>👁️ Despertar de Dōjutsu</h3>
+        <p class="small muted">Como membro do clã ${clan.name}, você pode despertar o <b>${dojutsuName(clan.dojutsu)}</b> em um momento de grande estresse emocional em combate.</p>
+        <button class="btn primary mt8" onclick="awakenDojutsu('${clan.dojutsu}')" ${S.level<10?'disabled':''}>Despertar (Nível 10+)</button></div>`;
+    } else {
+      unlockInfo = `<div class="card"><h3>👁️ Rinnegan — Caminho Raro</h3>
+        <p class="small muted">Independente do seu clã, no nível 45+ com Chakra dos Seis Caminhos você pode tentar despertar o lendário Rinnegan.</p>
+        <button class="btn primary mt8" onclick="awakenDojutsu('rinnegan')" ${S.level<45?'disabled':''}>Tentar Despertar (Nível 45+)</button></div>`;
+    }
+  } else {
+    const stages = DOJUTSU_STAGES[S.dojutsu.type];
+    const nextCost = dojutsuUpgradeCost();
+    unlockInfo = `<div class="card">
+      <h3>👁️ ${dojutsuName(S.dojutsu.type)}</h3>
+      <p class="small muted">Estágio atual: <b>${stages[S.dojutsu.stage]}</b></p>
+      <div class="prog-mini"><i style="width:${S.dojutsu.stage/4*100}%"></i></div>
+      ${S.dojutsu.stage<4 ? `<p class="small mt8">Próximo estágio: <b>${stages[S.dojutsu.stage+1]}</b></p>
+        <p class="small muted">Custo: ${formatNum(nextCost.ryo)} ryo, nível ${nextCost.level}+</p>
+        <button class="btn primary mt8" onclick="upgradeDojutsu()" ${(S.level<nextCost.level||S.ryo<nextCost.ryo)?'disabled':''}>Evoluir Dōjutsu</button>`
+        : `<p style="color:var(--gold);font-weight:700;">Estágio máximo alcançado!</p>`}
+    </div>`;
+  }
+  el.innerHTML = `
+  <h1 class="screen-title">Dōjutsu — Olhos Lendários</h1>
+  <p class="screen-sub">Sharingan, Byakugan e Rinnegan concedem poderes visuais únicos e desbloqueiam jutsus especiais.</p>
+  <div class="grid cols-2">
+    ${unlockInfo}
+    <div class="card">
+      <h3>📖 Enciclopédia de Dōjutsu</h3>
+      ${Object.keys(DOJUTSU_STAGES).map(dk=>`
+        <div class="stat-row" style="display:block;"><b>${dojutsuName(dk)}</b>
+        <p class="small muted mb0">${dk==='sharingan'?'Clã Uchiha • Amplia Genjutsu, copia técnicas e desbloqueia Amaterasu, Kamui e Susanoo no estágio Mangekyou.':
+          dk==='byakugan'?'Clã Hyūga • Visão de 360°, amplia Taijutsu e desbloqueia o Punho Suave dos Oito Trigramas.':
+          'Lendário • Concede acesso a todas as afinidades elementais e às Técnicas dos Seis Caminhos.'}</p></div>
+      `).join('')}
+    </div>
+  </div>`;
+}
+function dojutsuUpgradeCost(){
+  const s = S.dojutsu.stage;
+  return { ryo: Math.round(500*Math.pow(2.2,s)), level: 10+s*15 };
+}
+
+/* ------------ INVENTÁRIO (equipar para batalha) ------------ */
+function renderInventario(){
+  const el = document.getElementById('screen-inventario');
+  const moves = loadoutMoves();
+  const learnedJutsu = JUTSU_LIST.filter(j=>S.jutsuLearned.includes(j.id));
+  el.innerHTML = `
+  <h1 class="screen-title">Inventário</h1>
+  <p class="screen-sub">Monte seu conjunto de batalha: escolha até 4 jutsus e equipe seus itens antes de entrar em combate.</p>
+  <div class="card">
+    <h3><span class="ico">🌀</span>Conjunto de Jutsus de Batalha (${moves.length}/4)</h3>
+    <p class="card-sub">Clique em uma técnica aprendida para adicionar ou remover do seu conjunto de batalha.</p>
+    <div class="flex wrap gap">
+      ${learnedJutsu.length===0?'<p class="small muted">Você ainda não aprendeu nenhum jutsu. Vá até a aba Jutsus.</p>':
+        learnedJutsu.map(j=>{
+          const inLoadout = S.loadout.includes(j.id);
+          return `<div class="pill ${inLoadout?'active':''}" onclick="toggleLoadout('${j.id}')">${j.name} <span class="small muted">(🌀${j.chakra})</span></div>`;
+        }).join('')}
+    </div>
+  </div>
+  <hr class="section-divider">
+  <h1 class="screen-title" style="font-size:18px;">🎒 Equipamentos</h1>
+  <div class="grid cols-2">
+    ${Object.keys(EQUIP_SLOTS).map(sk=>renderInventorySlot(sk)).join('')}
+  </div>
+  <hr class="section-divider">
+  <h1 class="screen-title" style="font-size:18px;">🐸 Invocação Ativa</h1>
+  <div class="card">
+    ${(S.ownedSummons||[]).length===0?'<p class="small muted">Nenhum contrato de invocação firmado ainda. Visite a aba Invocações.</p>':
+      `<div class="flex wrap gap">
+      ${(S.ownedSummons||[]).map(sid=>{
+        const sm = SUMMONS.find(x=>x.id===sid);
+        const active = S.equipped.invocacao===sid;
+        return `<div class="pill ${active?'active':''}" onclick="equipSummon('${active?'':sid}')">${sm.ico} ${sm.name}${active?' ✔':''}</div>`;
+      }).join('')}
+      </div>`}
+  </div>`;
+}
+function renderInventorySlot(sk){
+  const slot = EQUIP_SLOTS[sk];
+  const owned = S.inventory.map(id=>EQUIP_LIST.find(e=>e.id===id)).filter(it=>it && it.slot===sk);
+  const equippedId = S.equipped[sk];
+  return `<div class="card">
+    <h3><span class="ico">${slot.ico}</span>${slot.name}</h3>
+    ${owned.length===0?'<p class="small muted">Nenhum item deste tipo. Visite a Loja & Forja.</p>':
+      owned.map(it=>{
+        const eq = equippedId===it.id;
+        return `<div class="list-item ${eq?'equipped':''}" style="margin-bottom:6px;">
+          <div class="li-main">
+            <div class="li-title">${it.name} <span class="tag ${it.rarity}">${RARITIES.find(r=>r.id===it.rarity).name}</span></div>
+            <div class="li-desc">+${it.bonus} ${statLabel(it.statKey).replace(/^[^ ]+ /,'')}</div>
+            <div class="li-desc" style="font-style:italic;">${it.flavor||''}</div>
+          </div>
+          ${eq?`<button class="btn small" onclick="unequipItem('${sk}')">Remover</button>`:
+            `<button class="btn small primary" onclick="equipItem('${it.id}')">Equipar</button>`}
+        </div>`;
+      }).join('')}
+  </div>`;
+}
+
+/* ------------ EQUIPAMENTOS & FORJA (loja) ------------ */
+let equipFilter = 'arma';
+function renderEquip(){
+  const el = document.getElementById('screen-equip');
+  const owned = S.inventory;
+  const slotItems = EQUIP_LIST.filter(e=>e.slot===equipFilter);
+  el.innerHTML = `
+  <h1 class="screen-title">Loja & Forja</h1>
+  <p class="screen-sub">Compre e crie equipamentos. Depois, equipe-os na aba <b>Inventário</b> para usá-los em batalha. Ryo: <b style="color:var(--gold)">${formatNum(S.ryo)}</b></p>
+  <div class="pillbar">
+    ${Object.keys(EQUIP_SLOTS).map(sk=>`<div class="pill ${equipFilter===sk?'active':''}" onclick="equipFilter='${sk}';renderEquip();">${EQUIP_SLOTS[sk].ico} ${EQUIP_SLOTS[sk].name}</div>`).join('')}
+  </div>
+  <div class="grid auto">
+    ${slotItems.map(it=>{
+      const has = owned.includes(it.id);
+      const locked = S.level < it.reqLevel;
+      return `<div class="list-item ${has?'learned':(locked?'locked':'')}" style="display:block;">
+        <div class="li-title">${it.name} <span class="tag ${it.rarity}">${RARITIES.find(r=>r.id===it.rarity).name}</span></div>
+        <div class="li-desc">+${it.bonus} ${statLabel(it.statKey).replace(/^[^ ]+ /,'')} • Nível req. ${it.reqLevel}</div>
+        <div class="li-desc" style="font-style:italic;">${it.flavor||''}</div>
+        <div class="flex between mt8">
+          <span class="small muted">Custo: ${formatNum(it.cost)} ryo</span>
+          ${has?'<span class="small" style="color:var(--green);font-weight:700;">✔ Possuído</span>':
+            `<button class="btn small ${locked?'':'chakra'}" onclick="buyItem('${it.id}')" ${locked||S.ryo<it.cost?'disabled':''}>Comprar</button>`}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>
+  <hr class="section-divider">
+  <h1 class="screen-title" style="font-size:18px;">🔨 Materiais de Crafting</h1>
+  <div class="grid cols-3 mt8">
+    <div class="card">
+      <h3>📦 Seus Materiais</h3>
+      ${MATERIALS.map(mt=>`<div class="stat-row"><span class="name">${mt.ico} ${mt.name}</span><span class="value">${S.materials[mt.id]||0}</span></div>`).join('')}
+      <p class="small muted mt8">Materiais são obtidos completando missões e derrotando chefes.</p>
+    </div>
+    <div class="card" style="grid-column:span 2;">
+      <h3>⚒️ Forjar Item Aleatório</h3>
+      <p class="small muted">Combine materiais e ryo para forjar um equipamento aleatório de raridade maior conforme a quantidade investida.</p>
+      <div class="flex gap wrap mt8">
+        <button class="btn primary" onclick="craftItem(1)">Forja Simples (5 Ferro, 60 ryo)</button>
+        <button class="btn chakra" onclick="craftItem(2)">Forja Avançada (5 Cristal, 8 Ferro, 300 ryo)</button>
+        <button class="btn danger" onclick="craftItem(3)">Forja Lendária (3 Essência, 5 Cristal, 1500 ryo)</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ------------ INVOCAÇÕES ------------ */
+function renderInvocacoes(){
+  const el = document.getElementById('screen-invocacoes');
+  el.innerHTML = `
+  <h1 class="screen-title">Invocações</h1>
+  <p class="screen-sub">Firme contratos de invocação. Depois, ative sua invocação na aba <b>Inventário</b>.</p>
+  <div class="grid auto">
+    ${SUMMONS.map(sm=>{
+      const has = (S.ownedSummons||[]).includes(sm.id);
+      const locked = S.level < sm.reqLevel || (sm.mentor && !S.mentorsLearned.includes(sm.mentor)) || (sm.clan && S.clan!==sm.clan);
+      const bonusStr = Object.entries(sm.bonus).map(([k,v])=>`${v>0?'+':''}${Math.round(v*100)}% ${bonusLabel(k)}`).join(', ');
+      return `<div class="list-item ${has?'learned':(locked?'locked':'')}" style="display:block;">
+        <div class="li-title">${sm.ico} ${sm.name}</div>
+        <div class="li-desc">${sm.desc}</div>
+        <div class="li-desc" style="color:var(--green);">${bonusStr}</div>
+        <div class="flex between mt8">
+          <span class="small muted">Requer nível ${sm.reqLevel}${sm.mentor?' • Mentor: '+MENTORS.find(m=>m.id===sm.mentor).name:''}${sm.clan?' • Clã: '+CLANS[sm.clan].name:''}</span>
+          ${has?'<span class="small" style="color:var(--green);font-weight:700;">✔ Contrato Firmado</span>':
+            `<button class="btn small ${locked?'':'chakra'}" onclick="signSummonContract('${sm.id}')" ${locked?'disabled':''}>Firmar Contrato</button>`}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function bonusLabel(k){
+  const map={force:'Força',speed:'Velocidade',chakra:'Chakra Máx',hp:'Vida Máx',intel:'Inteligência',chakraControl:'Controle de Chakra',hpRegen:'Regen. Vida',missionSpeed:'Velocidade de Missão'};
+  return map[k]||k;
+}
+
+/* ------------ MENTORES ------------ */
+function renderMentores(){
+  const el = document.getElementById('screen-mentores');
+  el.innerHTML = `
+  <h1 class="screen-title">Mentores</h1>
+  <p class="screen-sub">Treine com mestres lendários para ganhar bônus permanentes de atributos e desbloquear conteúdo exclusivo.</p>
+  <div class="grid auto">
+    ${MENTORS.map(m=>{
+      const learned = S.mentorsLearned.includes(m.id);
+      const locked = S.level < m.reqLevel || (m.secret && !S.flags.rinneganEventSeen && m.id==='orochimaru' && S.level<45);
+      const cd = S.mentorCooldown[m.id]||0;
+      const onCd = cd > Date.now();
+      return `<div class="list-item ${learned?'learned':(locked?'locked':'')}" style="display:block;">
+        <div class="li-title">${m.ico} ${m.name} <span class="small muted">${m.spec}</span></div>
+        <div class="li-desc">${m.desc}</div>
+        <div class="flex between mt8">
+          <span class="small muted">Nível ${m.reqLevel}+ • Custo ${formatNum(m.cost)} ryo • Recompensa: +${m.reward.amount} ${statLabel(m.reward.stat)}</span>
+          <button class="btn small ${locked?'':'primary'}" onclick="trainWithMentor('${m.id}')" ${locked||onCd||S.ryo<m.cost?'disabled':''}>
+            ${onCd?'Em cooldown':'Treinar'}</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+/* ------------ EVENTOS & CHEFES ------------ */
+let eventTab='chefes';
+function renderEventos(){
+  const el = document.getElementById('screen-eventos');
+  el.innerHTML = `
+  <h1 class="screen-title">Eventos & Chefes</h1>
+  <p class="screen-sub">Enfrente inimigos icônicos, participe de exames e mude o destino do mundo ninja.</p>
+  <div class="pillbar">
+    <div class="pill ${eventTab==='chefes'?'active':''}" onclick="eventTab='chefes';renderEventos();">⚔️ Chefes</div>
+    <div class="pill ${eventTab==='mundo'?'active':''}" onclick="eventTab='mundo';renderEventos();">🌍 Eventos do Mundo</div>
+    <div class="pill ${eventTab==='bijuu'?'active':''}" onclick="eventTab='bijuu';renderEventos();">🐉 Bestas com Cauda</div>
+  </div>
+  <div id="eventContent"></div>`;
+  const c = document.getElementById('eventContent');
+  if(eventTab==='chefes'){
+    c.innerHTML = `<div class="grid auto">${BOSSES.map(b=>{
+      const locked = S.level < b.reqLevel;
+      const defeated = S.bossesDefeatedList.includes(b.id);
+      return `<div class="card ${locked?'locked':''}">
+        <h3><span class="ico">${b.ico}</span>${b.name} ${defeated?'<span class="tag c">Derrotado</span>':''}</h3>
+        <p class="card-sub">Requer nível ${b.reqLevel} • HP ${formatNum(b.hp)} • Poder ${b.power}</p>
+        <div class="stat-row"><span class="name">Recompensa</span><span class="value gain">${b.loot}</span></div>
+        <div class="stat-row"><span class="name">Ryo</span><span class="value" style="color:var(--gold)">+${formatNum(b.ryo)}</span></div>
+        <button class="btn danger full mt8" onclick="fightBoss('${b.id}')" ${locked?'disabled':''}>Enfrentar</button>
+      </div>`;
+    }).join('')}</div>`;
+  } else if(eventTab==='mundo'){
+    c.innerHTML = `<div class="grid auto">
+      <div class="card">
+        <h3>📝 Exame Chunin</h3>
+        <p class="card-sub">Disponível a partir do nível 15. Um teste em três fases: escrita, sobrevivência e torneio.</p>
+        ${S.flags.chuninExamDone?'<p style="color:var(--green);font-weight:700;">✔ Concluído</p>':
+          `<button class="btn primary full mt8" onclick="doChuninExam()" ${S.level<15?'disabled':''}>Participar</button>`}
+      </div>
+      <div class="card">
+        <h3>🎭 Ingressar na ANBU</h3>
+        <p class="card-sub">Disponível a partir do nível 42 (rank ANBU). Realize operações secretas de altíssimo risco.</p>
+        ${S.flags.anbuJoined?'<p style="color:var(--green);font-weight:700;">✔ Membro da ANBU</p>':
+          `<button class="btn primary full mt8" onclick="joinAnbu()" ${S.level<42?'disabled':''}>Ingressar</button>`}
+      </div>
+      <div class="card">
+        <h3>☁️ Encontro com a Akatsuki</h3>
+        <p class="card-sub">A organização criminosa pode aparecer a partir do nível 30. Encontros: ${S.flags.akatsukiEncounters}</p>
+        <button class="btn danger full mt8" onclick="triggerAkatsukiEvent()" ${S.level<30?'disabled':''}>Investigar Rumores</button>
+      </div>
+      <div class="card">
+        <h3>🎌 Quarta Grande Guerra Ninja</h3>
+        <p class="card-sub">Disponível a partir do nível 40. Uma batalha massiva que decide o destino do mundo shinobi.</p>
+        ${S.flags.warDone?'<p style="color:var(--green);font-weight:700;">✔ Vitória alcançada</p>':
+          `<button class="btn danger full mt8" onclick="doGreatWar()" ${S.level<40?'disabled':''}>Entrar na Guerra</button>`}
+      </div>
+    </div>`;
+  } else {
+    c.innerHTML = `<div class="grid auto">${BIJUUS.map(bj=>{
+      const locked = S.level<bj.reqLevel;
+      const mastered = S.bijuuMastered.includes(bj.id);
+      return `<div class="card ${locked?'locked':''}">
+        <h3>🐉 ${bj.name}</h3>
+        <p class="card-sub">Cauda ${bj.n} • Requer nível ${bj.reqLevel}</p>
+        ${mastered?'<p style="color:var(--green);font-weight:700;">✔ Chakra dominado</p>':
+          `<button class="btn chakra full mt8" onclick="masterBijuu('${bj.id}')" ${locked?'disabled':''}>Absorver Chakra</button>`}
+      </div>`;
+    }).join('')}</div>`;
+  }
+}
+
+/* ------------ TALENTOS & PRESTÍGIO ------------ */
+function renderTalentos(){
+  const el = document.getElementById('screen-talentos');
+  const canPrestige = S.level >= 60;
+  const projected = projectedPrestigePoints();
+  el.innerHTML = `
+  <h1 class="screen-title">Talentos & Prestígio</h1>
+  <p class="screen-sub">Pontos de Prestígio: <b style="color:var(--purple);">${S.prestige.points}</b> • Prestígios realizados: ${S.prestige.count}</p>
+  <div class="card">
+    <h3>♻️ Nova Geração (Prestígio)</h3>
+    <p class="small muted">Ao se tornar Hokage (nível 60+), você pode passar o legado adiante: reinicia nível, atributos e ryo, mas concede <b>Pontos de Prestígio</b> permanentes com base no seu nível, além de manter jutsus (readquiridos com desconto), conquistas e talentos.</p>
+    <p class="small mt8">Prestigiar agora concederia: <b style="color:var(--purple);">+${projected} Pontos de Prestígio</b></p>
+    <button class="btn danger mt8" onclick="confirmPrestige()" ${canPrestige?'':'disabled'}>${canPrestige?'Prestigiar Agora':'Requer nível 60 (Hokage)'}</button>
+  </div>
+  <hr class="section-divider">
+  <h1 class="screen-title" style="font-size:18px;">🌌 Árvore de Talentos</h1>
+  <div class="grid cols-4">
+    ${TALENTS.map(t=>{
+      const pts = S.talents[t.id]||0;
+      const maxed = pts>=t.max;
+      const cost = t.costBase*(pts+1);
+      return `<div class="talent-node ${maxed?'bought':''}" onclick="buyTalent('${t.id}')">
+        <div class="tn-ico">${t.ico}</div>
+        <div class="tn-name">${t.name}</div>
+        <div class="tn-desc">${t.desc}</div>
+        <div class="tn-desc">Nível: ${pts}/${t.max}</div>
+        <div class="tn-cost">${maxed?'MÁXIMO':`Custo: ${cost} PP`}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function projectedPrestigePoints(){
+  return Math.max(1, Math.floor(Math.pow(S.level,1.25)/6));
+}
+
+/* ------------ CONQUISTAS & STATS ------------ */
+function renderConquistas(){
+  const el = document.getElementById('screen-conquistas');
+  el.innerHTML = `
+  <h1 class="screen-title">Conquistas & Estatísticas</h1>
+  <p class="screen-sub">${S.achievementsUnlocked.length}/${ACHIEVEMENTS.length} conquistas desbloqueadas.</p>
+  <div class="grid cols-4">
+    ${ACHIEVEMENTS.map(a=>{
+      const done = S.achievementsUnlocked.includes(a.id);
+      return `<div class="ach-badge ${done?'done':''}">
+        <div class="ab-ico">${a.ico}</div>
+        <div class="ab-name">${a.name}</div>
+        <div class="ab-desc">${a.desc}</div>
+      </div>`;
+    }).join('')}
+  </div>
+  <hr class="section-divider">
+  <h1 class="screen-title" style="font-size:18px;">📊 Estatísticas Gerais</h1>
+  <div class="grid cols-3">
+    <div class="card">
+      <div class="stat-row"><span class="name">Treinos realizados</span><span class="value">${S.stats.trainingCount}</span></div>
+      <div class="stat-row"><span class="name">Missões concluídas</span><span class="value">${S.stats.missionsCompleted}</span></div>
+      <div class="stat-row"><span class="name">Chefes derrotados</span><span class="value">${S.stats.bossesDefeated}</span></div>
+      <div class="stat-row"><span class="name">Akatsuki derrotados</span><span class="value">${S.stats.akatsukiDefeated}</span></div>
+    </div>
+    <div class="card">
+      <div class="stat-row"><span class="name">Ryo total ganho</span><span class="value">${formatNum(S.stats.totalRyoEarned)}</span></div>
+      <div class="stat-row"><span class="name">XP total ganho</span><span class="value">${formatNum(S.stats.totalXpEarned)}</span></div>
+      <div class="stat-row"><span class="name">Itens forjados</span><span class="value">${S.stats.itemsCrafted}</span></div>
+      <div class="stat-row"><span class="name">Guerras vencidas</span><span class="value">${S.stats.warsWon}</span></div>
+    </div>
+    <div class="card">
+      <div class="stat-row"><span class="name">Jutsus aprendidos</span><span class="value">${S.jutsuLearned.length}</span></div>
+      <div class="stat-row"><span class="name">Bijuus dominados</span><span class="value">${S.bijuuMastered.length}/9</span></div>
+      <div class="stat-row"><span class="name">Prestígios</span><span class="value">${S.prestige.count}</span></div>
+      <div class="stat-row"><span class="name">Tempo de jogo</span><span class="value">${formatPlaytime(S.stats.playtimeSec)}</span></div>
+    </div>
+  </div>`;
+}
+function formatPlaytime(sec){
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60);
+  return `${h}h ${m}m`;
+}
+
+/* =========================================================================
+   AÇÕES DO JOGADOR
+   ========================================================================= */
+function gainXp(amount){
+  amount *= getMult('xpMult');
+  S.xp += amount;
+  S.stats.totalXpEarned += amount;
+  while(S.xp >= xpToNext(S.level)){
+    S.xp -= xpToNext(S.level);
+    S.level++;
+    S.staminaMax += 2;
+    S.stats.hpMax += 4;
+    S.stats.chakraMax += 4;
+    toast(`Você alcançou o nível ${S.level}!`, 'Level Up', 'xp');
+    const nr = rankForLevel(S.level);
+    checkAchievements();
+  }
+}
+function gainRyo(amount){
+  amount = Math.round(amount * getMult('ryoMult'));
+  S.ryo += amount;
+  S.stats.totalRyoEarned += amount;
+}
+function addMaterial(id, qty){
+  S.materials[id] = (S.materials[id]||0) + qty;
+}
+function randomMaterialDrop(){
+  const m = MATERIALS[Math.floor(Math.random()*MATERIALS.length)];
+  addMaterial(m.id, 1+Math.floor(Math.random()*3));
+  return m;
+}
+
+/* ---- Treinamento ---- */
+function doTraining(id){
+  const t = TRAININGS.find(x=>x.id===id);
+  const cost = trainingCost(t);
+  if(S.stamina < cost) return;
+  S.stamina -= cost;
+  S.stats.trainingCount++;
+  if(t.stat==='hpMax'){
+    S.stats.hpMax += 1+Math.floor(S.level/5);
+  } else if(t.stat==='chakraMax'){
+    S.stats.chakraMax += 1+Math.floor(S.level/5);
+  } else {
+    S.stats[t.stat] += S.baseGain[t.stat];
+    S.baseGain[t.stat] = Math.round((S.baseGain[t.stat]*1.004 + 0.002)*1000)/1000;
+  }
+  gainXp(2 + S.level*0.15);
+  checkAchievements();
+  renderTopbar(); renderTreino();
+}
+function trainAffinity(ek){
+  if(S.stamina<5) return;
+  S.stamina -= 5;
+  const cur = S.elementAffinity[ek]||0;
+  if(cur>=100) { toast('Afinidade já está no máximo.','Aviso','warn'); return; }
+  S.elementAffinity[ek] = Math.min(100, cur + 2 + Math.random()*2);
+  gainXp(1.5);
+  renderTopbar(); renderCla();
+}
+function tryUnlockCombo(ek){
+  const combo = COMBO_ELEMENTS[ek];
+  const ok = combo.req.every(r=>(S.elementAffinity[r]||0) >= 20) && S.level>=20;
+  if(!ok){ toast('Você precisa de nível 20+ e afinidade 20+ nos elementos base.','Requisito não cumprido','warn'); return; }
+  S.elementAffinity[ek] = 1;
+  toast(`Você despertou a afinidade a ${combo.name}!`, 'Novo Elemento', 'item');
+  renderCla();
+}
+
+/* ---- Clã ---- */
+function chooseClan(ck){
+  if(S.clan) return;
+  S.clan = ck;
+  const c = CLANS[ck];
+  toast(`Você agora pertence ao clã ${c.name}!`, 'Clã Escolhido', 'item');
+  renderAll();
+}
+
+/* ---- Missões ---- */
+function startMission(id){
+  const m = MISSION_LIST.find(x=>x.id===id);
+  if(S.level<m.minLevel || S.activeMissions.length>=S.missionSlots || S.stamina<m.stamina) return;
+  S.stamina -= m.stamina;
+  const dur = m.duration * 1000 * (1-talentEffect('missionSpeed')) * (1-(clanOf()&&clanOf().name==='Inuzuka'?0.1:0)) * (1-summonBonus('missionSpeed'));
+  S.activeMissions.push({ id:'am'+Date.now()+Math.floor(Math.random()*999), missionId:m.id, startedAt:Date.now(), endsAt:Date.now()+dur });
+  renderMissoes();
+}
+function collectMission(activeId){
+  const idx = S.activeMissions.findIndex(a=>a.id===activeId);
+  if(idx<0) return;
+  const am = S.activeMissions[idx];
+  if(Date.now() < am.endsAt) return;
+  const m = MISSION_LIST.find(x=>x.id===am.missionId);
+  gainXp(m.xp);
+  gainRyo(m.ryo);
+  S.stats.missionsCompleted++;
+  if(Math.random()<m.dropChance){
+    const mat = randomMaterialDrop();
+    toast(`Você recebeu ${mat.ico} ${mat.name} da missão!`, 'Item Encontrado', 'item');
+  }
+  S.activeMissions.splice(idx,1);
+  toast(`Missão "${m.name}" concluída! +${formatNum(m.xp)} XP, +${formatNum(m.ryo)} ryo`, 'Missão Completa', 'xp');
+  checkAchievements();
+  renderTopbar(); renderMissoes(); renderVisao();
+}
+
+/* ---- Jutsus ---- */
+function learnJutsu(id){
+  const j = JUTSU_LIST.find(x=>x.id===id);
+  if(!j || S.jutsuLearned.includes(id)) return;
+  if(!jutsuReqMet(j)) return;
+  const cost = jutsuXpCost(j);
+  if(S.xp < cost) { toast('XP insuficiente para aprender esta técnica.','Aviso','warn'); return; }
+  S.xp -= cost;
+  S.jutsuLearned.push(id);
+  toast(`Você aprendeu ${j.name}!`, 'Novo Jutsu', 'item');
+  checkAchievements();
+  renderTopbar(); renderJutsus();
+}
+
+/* ---- Equipamentos ---- */
+function buyItem(id){
+  const it = EQUIP_LIST.find(x=>x.id===id);
+  if(!it || S.level<it.reqLevel || S.ryo<it.cost || S.inventory.includes(id)) return;
+  S.ryo -= it.cost;
+  S.inventory.push(id);
+  toast(`Você adquiriu ${it.name}. Equipe-a na aba Inventário.`, 'Compra Realizada', 'item');
+  renderTopbar(); renderEquip();
+}
+function equipItem(id){
+  const it = EQUIP_LIST.find(x=>x.id===id);
+  if(!it || !S.inventory.includes(id)) return;
+  S.equipped[it.slot] = id;
+  renderTopbar(); renderInventario(); renderVisao();
+}
+function unequipItem(slot){
+  S.equipped[slot] = null;
+  renderTopbar(); renderInventario(); renderVisao();
+}
+function toggleLoadout(jutsuId){
+  const idx = S.loadout.indexOf(jutsuId);
+  if(idx>=0){ S.loadout.splice(idx,1); }
+  else {
+    if(S.loadout.length>=4){ toast('Você só pode escolher até 4 jutsus para batalha.','Conjunto Cheio','warn'); return; }
+    S.loadout.push(jutsuId);
+  }
+  renderInventario();
+}
+function craftItem(tier){
+  const recipes = {
+    1:{mats:{ferro:5}, ryo:60, rarityWeights:[0.55,0.30,0.12,0.03,0,0]},
+    2:{mats:{chakraCristal:5, ferro:8}, ryo:300, rarityWeights:[0.15,0.35,0.30,0.15,0.05,0]},
+    3:{mats:{essenciaBesta:3, chakraCristal:5}, ryo:1500, rarityWeights:[0,0.05,0.20,0.35,0.30,0.10]},
+  };
+  const r = recipes[tier];
+  const cost = Math.round(r.ryo*(1-talentEffect('craftDiscount')));
+  for(const mk in r.mats){ if((S.materials[mk]||0) < r.mats[mk]){ toast('Materiais insuficientes.','Aviso','warn'); return; } }
+  if(S.ryo < cost){ toast('Ryo insuficiente.','Aviso','warn'); return; }
+  for(const mk in r.mats){ S.materials[mk] -= r.mats[mk]; }
+  S.ryo -= cost;
+  // pick rarity
+  let roll = Math.random(), acc=0, rarityIdx=0;
+  for(let i=0;i<r.rarityWeights.length;i++){ acc+=r.rarityWeights[i]; if(roll<=acc){ rarityIdx=i; break; } }
+  const rarityId = RARITIES[rarityIdx].id;
+  const pool = EQUIP_LIST.filter(e=>e.rarity===rarityId && S.level>=Math.max(1,e.reqLevel-10));
+  const chosen = pool.length ? pool[Math.floor(Math.random()*pool.length)] : EQUIP_LIST.find(e=>e.rarity===rarityId);
+  if(chosen && !S.inventory.includes(chosen.id)) S.inventory.push(chosen.id);
+  S.stats.itemsCrafted++;
+  toast(`Forja concluída! Você criou ${chosen?chosen.name:'um item'}.`, 'Item Forjado', 'item');
+  checkAchievements();
+  renderTopbar(); renderEquip();
+}
+
+/* ---- Invocações ---- */
+function signSummonContract(id){
+  const sm = SUMMONS.find(x=>x.id===id);
+  if(!sm) return;
+  S.ownedSummons = S.ownedSummons || [];
+  if(S.ownedSummons.includes(id)) return;
+  S.ownedSummons.push(id);
+  toast(`Contrato de invocação com ${sm.name} firmado!`, 'Novo Contrato', 'item');
+  renderInvocacoes();
+}
+function equipSummon(id){
+  S.equipped.invocacao = id || null;
+  renderInvocacoes(); renderInventario(); renderTopbar(); renderVisao();
+}
+
+/* ---- Mentores ---- */
+function trainWithMentor(id){
+  const m = MENTORS.find(x=>x.id===id);
+  if(!m) return;
+  const cd = S.mentorCooldown[id]||0;
+  if(S.level<m.reqLevel || S.ryo<m.cost || cd>Date.now()) return;
+  S.ryo -= m.cost;
+  S.stats[m.reward.stat] += m.reward.amount;
+  if(!S.mentorsLearned.includes(id)) S.mentorsLearned.push(id);
+  S.mentorCooldown[id] = Date.now() + 60000;
+  toast(`Treino com ${m.name} concluído! +${m.reward.amount} ${statLabel(m.reward.stat)}`, 'Treinamento Especial', 'xp');
+  renderTopbar(); renderMentores();
+}
+
+/* ---- Combate ---- */
+function playerPower(){
+  const d = dojutsuBonusMult();
+  let p = effectiveStat('force')*1.4 + effectiveStat('speed')*0.9 + effectiveStat('chakraControl')*0.7 + effectiveStat('intel')*0.6;
+  p += S.jutsuLearned.length*3.2;
+  p *= (1+d.crit);
+  p *= (1 + S.level*0.01);
+  return Math.round(p);
+}
+function fightBoss(id){
+  const b = BOSSES.find(x=>x.id===id);
+  if(!b || S.level<b.reqLevel) return;
+  openBattle({name:b.name, ico:b.ico, hp:b.hp, power:b.power},
+    ()=>{
+      if(!S.bossesDefeatedList.includes(id)){ S.bossesDefeatedList.push(id); S.stats.bossesDefeated++; }
+      gainXp(Math.round(b.hp*0.12));
+      gainRyo(b.ryo);
+      if(['itachi','kakuzu','hidan','deidara','pain','obito','madara'].includes(id)) S.stats.akatsukiDefeated++;
+      toast(`Vitória! Você recebeu ${b.loot} e ${formatNum(b.ryo)} ryo.`, `Vitória contra ${b.name}`, 'item');
+      checkAchievements();
+      renderVisao();
+    },
+    ()=>{
+      toast(`${b.name} era forte demais desta vez. Treine mais e tente novamente.`, `Derrota contra ${b.name}`, 'warn');
+    }
+  );
+}
+
+/* ---- Eventos do mundo ---- */
+function doChuninExam(){
+  if(S.level<15 || S.flags.chuninExamDone) return;
+  openBattle({name:'Rival do Exame Chunin', ico:'🥷', hp:Math.round(300+S.level*8), power:Math.round(20+S.level*1.6)},
+    ()=>{
+      S.flags.chuninExamDone = true;
+      gainXp(1200); gainRyo(600);
+      toast('Você foi promovido a Chunin após o exame!', 'Exame Chunin', 'xp');
+    },
+    ()=>{ toast('Você não passou desta vez. Treine mais e tente novamente.', 'Exame Chunin', 'warn'); }
+  );
+}
+function joinAnbu(){
+  if(S.level<42 || S.flags.anbuJoined) return;
+  openBattle({name:'Avaliador ANBU', ico:'🎭', hp:Math.round(900+S.level*10), power:Math.round(45+S.level*2)},
+    ()=>{
+      S.flags.anbuJoined = true;
+      gainXp(2400); gainRyo(1200);
+      toast('Você foi aceito nas fileiras da ANBU.', 'ANBU', 'xp');
+    },
+    ()=>{ toast('Você falhou na avaliação da ANBU. Tente novamente mais forte.', 'ANBU', 'warn'); }
+  );
+}
+function triggerAkatsukiEvent(){
+  if(S.level<30) return;
+  S.flags.akatsukiEncounters++;
+  openBattle({name:'Membro Desconhecido da Akatsuki', ico:'☁️', hp:Math.round(700+S.level*9), power:Math.round(40+S.level*1.8)},
+    ()=>{
+      gainXp(600); gainRyo(300);
+      const mat = randomMaterialDrop();
+      toast(`Você afugentou o membro da Akatsuki e recuperou ${mat.name}.`, 'Encontro com a Akatsuki', 'item');
+    },
+    ()=>{ toast('O membro da Akatsuki escapou, mas você saiu ferido.', 'Encontro com a Akatsuki', 'warn'); }
+  );
+}
+function doGreatWar(){
+  if(S.level<40 || S.flags.warDone) return;
+  openBattle({name:'Exército do Edo Tensei', ico:'🎌', hp:Math.round(2600+S.level*14), power:Math.round(70+S.level*2.2)},
+    ()=>{
+      S.flags.warDone = true;
+      S.stats.warsWon++;
+      gainXp(6000); gainRyo(4000);
+      toast('A Aliança Shinobi venceu a Quarta Grande Guerra Ninja!', 'Guerra Vencida', 'xp');
+    },
+    ()=>{ toast('A batalha foi árdua e a vitória escapou por pouco. Tente novamente.', 'Grande Guerra', 'warn'); }
+  );
+}
+function masterBijuu(id){
+  const bj = BIJUUS.find(x=>x.id===id);
+  if(!bj || S.level<bj.reqLevel || S.bijuuMastered.includes(id)) return;
+  openBattle({name:bj.name, ico:'🐉', hp:Math.round(2000+bj.n*1800+S.level*10), power:Math.round(60+bj.n*30)},
+    ()=>{
+      S.bijuuMastered.push(id);
+      S.stats.chakraMax += 40;
+      gainXp(1800);
+      toast(`Você dominou uma fração do chakra de ${bj.name}!`, 'Chakra Dominado', 'item');
+      checkAchievements();
+    },
+    ()=>{ toast(`O chakra de ${bj.name} era grande demais para ser controlado agora.`, 'Chakra Selvagem', 'warn'); }
+  );
+}
+
+/* ---- Dōjutsu ---- */
+function awakenDojutsu(type){
+  if(S.dojutsu.type) return;
+  if(type==='rinnegan' && S.level<45) return;
+  if((type==='sharingan'||type==='byakugan') && S.level<10) return;
+  S.dojutsu.type = type;
+  S.dojutsu.stage = 1;
+  toast(`Você despertou o ${dojutsuName(type)}!`, 'Dōjutsu Desperto', 'item');
+  checkAchievements();
+  renderTopbar(); renderDojutsu(); renderVisao();
+}
+function upgradeDojutsu(){
+  const cost = dojutsuUpgradeCost();
+  if(S.level<cost.level || S.ryo<cost.ryo || S.dojutsu.stage>=4) return;
+  S.ryo -= cost.ryo;
+  S.dojutsu.stage++;
+  toast(`Seu ${dojutsuName(S.dojutsu.type)} evoluiu para o estágio ${S.dojutsu.stage}!`, 'Evolução Ocular', 'item');
+  checkAchievements();
+  renderTopbar(); renderDojutsu(); renderVisao();
+}
+
+/* ---- Talentos & Prestígio ---- */
+function buyTalent(id){
+  const t = TALENTS.find(x=>x.id===id);
+  const pts = S.talents[id]||0;
+  if(pts>=t.max) return;
+  const cost = t.costBase*(pts+1);
+  if(S.prestige.points < cost) { toast('Pontos de Prestígio insuficientes.','Aviso','warn'); return; }
+  S.prestige.points -= cost;
+  S.talents[id] = pts+1;
+  renderTopbar(); renderTalentos();
+}
+function confirmPrestige(){
+  const projected = projectedPrestigePoints();
+  openModal(`<h2>♻️ Nova Geração</h2>
+    <p class="small muted">Você reiniciará nível, atributos, ryo, missões e equipamentos. Você manterá: talentos, conquistas, chefes derrotados, mentores conhecidos e dōjutsu (reduzido em 1 estágio).</p>
+    <p class="small mt8">Você receberá <b style="color:var(--purple)">+${projected} Pontos de Prestígio</b>.</p>
+    <div class="flex gap mt14">
+      <button class="btn danger" onclick="doPrestige()">Confirmar Prestígio</button>
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+    </div>`);
+}
+function doPrestige(){
+  const projected = projectedPrestigePoints();
+  const keep = {
+    talents: S.talents, achievementsUnlocked: S.achievementsUnlocked,
+    bossesDefeatedList: S.bossesDefeatedList, mentorsLearned: S.mentorsLearned,
+    prestige: { count: S.prestige.count+1, points: S.prestige.points + projected },
+    clan: S.clan, name: S.name, bijuuMastered: S.bijuuMastered,
+    dojutsu: S.dojutsu.type ? {type:S.dojutsu.type, stage:Math.max(1,S.dojutsu.stage-1)} : {type:null,stage:0},
+    stats: Object.assign({}, freshState().stats, {
+      trainingCount:S.stats.trainingCount, missionsCompleted:S.stats.missionsCompleted,
+      totalRyoEarned:S.stats.totalRyoEarned, totalXpEarned:S.stats.totalXpEarned,
+      bossesDefeated:S.stats.bossesDefeated, akatsukiDefeated:S.stats.akatsukiDefeated,
+      itemsCrafted:S.stats.itemsCrafted, warsWon:S.stats.warsWon, playtimeSec:S.stats.playtimeSec
+    }),
+  };
+  const startAff = talentEffect('startAffinity');
+  S = freshState();
+  Object.assign(S, keep);
+  if(startAff>0){
+    Object.keys(BASE_ELEMENTS).concat(Object.keys(YIN_YANG)).forEach(k=>{ S.elementAffinity[k]=startAff*8; });
+  }
+  closeModal();
+  toast('Uma nova geração começa. Seu legado permanece.', 'Prestígio Realizado', 'xp');
+  saveGame(true);
+  renderAll();
+}
+
+/* ---- Conquistas ---- */
+function checkAchievements(){
+  let unlockedNew = false;
+  ACHIEVEMENTS.forEach(a=>{
+    if(!S.achievementsUnlocked.includes(a.id) && a.check(S)){
+      S.achievementsUnlocked.push(a.id);
+      unlockedNew = true;
+      toast(`Conquista desbloqueada: ${a.name}`, '🏆 Conquista', 'item');
+    }
+  });
+  if(unlockedNew && currentScreen==='conquistas') renderConquistas();
+}
+
+/* =========================================================================
+   SISTEMA DE BATALHA (estilo Pokémon clássico, por turnos, usando jutsus)
+   ========================================================================= */
+let currentBattle = null; // transiente, não é salvo
+
+function openBattle(def, onWin, onLose){
+  if(S.stats.hp <= 1) S.stats.hp = Math.max(1, Math.round(effectiveHpMax()*0.35));
+  currentBattle = {
+    name: def.name, ico: def.ico||'👤',
+    hp: def.hp, hpMax: def.hp, power: def.power,
+    log: [`Um oponente apareceu: ${def.name}!`],
+    finished: false, locked:false,
+    onWin, onLose
+  };
+  renderBattleModal();
+}
+
+function loadoutMoves(){
+  return (S.loadout||[]).map(id=>JUTSU_LIST.find(j=>j.id===id)).filter(Boolean);
+}
+
+function renderBattleModal(){
+  const cb = currentBattle;
+  if(!cb) return;
+  const hpMax = effectiveHpMax(), chMax = effectiveChakraMax();
+  const moves = loadoutMoves();
+  const over = cb.finished;
+  let movesHtml = `<button class="battle-move" onclick="battleMove('basic')" ${(cb.locked||over)?'disabled':''}>
+      🥊 Ataque Básico <span class="bm-sub">Sem custo de chakra</span></button>`;
+  moves.forEach(j=>{
+    const cantAfford = S.stats.chakra < j.chakra;
+    movesHtml += `<button class="battle-move" onclick="battleMove('${j.id}')" ${(cb.locked||over||cantAfford)?'disabled':''}>
+      ${j.name} <span class="bm-sub">${CATS[j.cat]} • 🌀${j.chakra}${cantAfford?' (chakra insuficiente)':''}</span></button>`;
+  });
+  if(moves.length===0){
+    movesHtml += `<p class="small muted" style="grid-column:span 2;">Você não escolheu jutsus para batalha. Vá até a aba <b>Inventário</b> e monte seu conjunto de até 4 técnicas.</p>`;
+  }
+
+  let endHtml = '';
+  if(over){
+    const win = cb.hp<=0;
+    endHtml = `<div class="mt14" style="text-align:center;">
+      <h3 style="color:${win?'var(--green)':'var(--sharingan)'};">${win?'🎉 Vitória!':'💥 Derrota...'}</h3>
+      <button class="btn primary full mt8" onclick="closeBattleModal()">Continuar</button>
+    </div>`;
+  }
+
+  const html = `
+    <h2>⚔️ Batalha</h2>
+    <div class="battle-vs">
+      <div class="battle-side">
+        <div class="bs-name">${escapeHtml(S.name)} <span class="small muted">Nv.${S.level}</span></div>
+        <div class="progress-label"><span>❤️ ${Math.floor(S.stats.hp)}/${hpMax}</span></div>
+        <div class="bar-track"><div class="bar-fill hp" style="width:${Math.max(0,S.stats.hp/hpMax*100)}%"></div></div>
+        <div class="progress-label mt8"><span>🌀 ${Math.floor(S.stats.chakra)}/${chMax}</span></div>
+        <div class="bar-track"><div class="bar-fill chakra" style="width:${Math.max(0,S.stats.chakra/chMax*100)}%"></div></div>
+      </div>
+      <div class="battle-ico">⚔️</div>
+      <div class="battle-side" style="text-align:right;">
+        <div class="bs-name" style="justify-content:flex-end;">${cb.name} <span class="battle-ico" style="font-size:20px;">${cb.ico}</span></div>
+        <div class="progress-label"><span>❤️ ${Math.max(0,Math.floor(cb.hp))}/${cb.hpMax}</span></div>
+        <div class="bar-track"><div class="bar-fill enemy" style="width:${Math.max(0,cb.hp/cb.hpMax*100)}%"></div></div>
+      </div>
+    </div>
+    <div class="combat-log" id="battleLog">${cb.log.map(l=>`<div>${l}</div>`).join('')}</div>
+    <div class="grid cols-2 mt14" style="gap:8px;">${movesHtml}</div>
+    <div class="flex gap mt14">
+      <button class="btn ghost small" onclick="fleeBattle()" ${over?'disabled':''}>Fugir</button>
+    </div>
+    ${endHtml}
+  `;
+  openModal(html, 'battle');
+}
+
+function battleMove(moveKey){
+  const cb = currentBattle;
+  if(!cb || cb.finished || cb.locked) return;
+  let dmg = 0, label = 'Ataque Básico', healAmt = 0;
+  if(moveKey === 'basic'){
+    dmg = Math.round(effectiveStat('force')*0.6 + S.level*1.5 + Math.random()*6);
+  } else {
+    const j = JUTSU_LIST.find(x=>x.id===moveKey);
+    if(!j) return;
+    if(S.stats.chakra < j.chakra){
+      cb.log.unshift(`Chakra insuficiente para usar ${j.name}!`);
+      renderBattleModal();
+      return;
+    }
+    S.stats.chakra -= j.chakra;
+    label = j.name;
+    if(j.cat === 'medico'){
+      healAmt = Math.round(effectiveStat('intel')*1.1 + j.tier*16);
+      S.stats.hp = Math.min(effectiveHpMax(), S.stats.hp + healAmt);
+    } else {
+      const statKey = CATEGORY_STAT[j.cat] || 'force';
+      let base = j.tier*9 + effectiveStat(statKey)*0.85;
+      if(j.element && ALL_ELEMENTS[j.element]) base *= 1 + (S.elementAffinity[j.element]||0)/220;
+      const d = dojutsuBonusMult();
+      if(j.cat==='ninjutsu') base *= d.ninjutsu;
+      else if(j.cat==='genjutsu') base *= d.genjutsu;
+      else if(j.cat==='taijutsu'||j.cat==='kenjutsu') base *= d.taijutsu;
+      base *= (0.85 + Math.random()*0.3);
+      if(Math.random() < d.crit) base *= 1.6;
+      dmg = Math.round(base);
+    }
+  }
+  if(healAmt>0){
+    cb.log.unshift(`${S.name} usa ${label} e recupera ${healAmt} de vida!`);
+  } else {
+    cb.hp = Math.max(0, cb.hp - dmg);
+    cb.log.unshift(`${S.name} usa ${label} e causa ${dmg} de dano em ${cb.name}!`);
+  }
+  if(cb.log.length>40) cb.log.length=40;
+
+  if(cb.hp <= 0){
+    renderBattleModal();
+    finishBattle(true);
+    return;
+  }
+  cb.locked = true;
+  renderBattleModal();
+  setTimeout(enemyTurn, 700);
+}
+
+function enemyTurn(){
+  const cb = currentBattle;
+  if(!cb || cb.finished) return;
+  const mitig = 1 - Math.min(0.35, effectiveStat('speed')/500);
+  const dmg = Math.round(cb.power * (0.8+Math.random()*0.4) * mitig);
+  S.stats.hp = Math.max(0, S.stats.hp - dmg);
+  cb.log.unshift(`${cb.name} contra-ataca e causa ${dmg} de dano em ${S.name}!`);
+  if(cb.log.length>40) cb.log.length=40;
+  cb.locked = false;
+  if(S.stats.hp <= 0){
+    renderBattleModal();
+    finishBattle(false);
+    return;
+  }
+  renderBattleModal();
+}
+
+function finishBattle(win){
+  const cb = currentBattle;
+  if(!cb || cb.finished) return;
+  cb.finished = true;
+  cb.log.unshift(win ? `Você derrotou ${cb.name}!` : `Você foi derrotado por ${cb.name}...`);
+  renderBattleModal();
+  if(win && cb.onWin) cb.onWin();
+  if(!win && cb.onLose) cb.onLose();
+  saveGame(true);
+  renderTopbar();
+}
+
+function fleeBattle(){
+  if(!currentBattle || currentBattle.finished) return;
+  toast('Você fugiu da batalha.', 'Retirada', 'warn');
+  currentBattle = null;
+  closeModal();
+  renderTopbar(); renderScreen(currentScreen);
+}
+
+function closeBattleModal(){
+  currentBattle = null;
+  closeModal();
+  renderTopbar(); renderScreen(currentScreen);
+}
+
+/* =========================================================================
+   LOOP PRINCIPAL / BOOT
+   ========================================================================= */
+function tick(deltaSec){
+  // stamina regen
+  S.stamina = Math.min(S.staminaMax, S.stamina + staminaRegenPerSec()*deltaSec);
+  // hp / chakra regen
+  const hpMax = effectiveHpMax(), chMax = effectiveChakraMax();
+  S.stats.hp = Math.min(hpMax, S.stats.hp + (hpMax*0.01)*deltaSec);
+  S.stats.chakra = Math.min(chMax, S.stats.chakra + (chMax*0.02)*deltaSec);
+  S.stats.playtimeSec += deltaSec;
+}
+
+function gameLoop(){
+  const now = Date.now();
+  const delta = (now - S.lastTick)/1000;
+  S.lastTick = now;
+  tick(Math.min(delta,5));
+  renderTopbar();
+  if(currentScreen==='missoes') renderMissoes();
+  if(currentScreen==='visao') renderVisao();
+  if(currentScreen==='treino') renderTreino();
+}
+
+function offlineProgress(){
+  const now = Date.now();
+  const delta = Math.max(0,(now - S.lastTick)/1000);
+  if(delta < 30) { S.lastTick = now; return; }
+  const capped = Math.min(delta, 8*3600); // max 8h offline progress
+  tick(capped);
+  // auto-resolve missions that finished while away
+  let collected = 0, xpGain=0, ryoGain=0;
+  S.activeMissions = S.activeMissions.filter(am=>{
+    if(am.endsAt <= now){
+      const m = MISSION_LIST.find(x=>x.id===am.missionId);
+      if(m){ xpGain+=m.xp; ryoGain+=m.ryo; collected++; S.stats.missionsCompleted++; }
+      return false;
+    }
+    return true;
+  });
+  if(xpGain>0){ gainXp(xpGain); gainRyo(ryoGain); }
+  S.lastTick = now;
+  if(collected>0 || capped>60){
+    const mins = Math.floor(capped/60);
+    setTimeout(()=>toast(`Enquanto você estava fora (${mins} min), ${collected} missão(ões) foram concluídas.`, 'Bem-vindo de volta', 'xp'), 400);
+  }
+}
+
+function nameOnboarding(){
+  openModal(`<h2>忍 Bem-vindo ao Caminho Ninja</h2>
+    <p class="small muted">Antes de começar sua jornada da Academia até Hokage, como devemos te chamar?</p>
+    <input id="nameInput" type="text" maxlength="18" placeholder="Nome do seu ninja" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--line-soft);background:var(--bg-0);color:var(--text-0);font-size:13px;margin-top:8px;">
+    <button class="btn primary full mt14" onclick="finishOnboarding()">Começar Jornada</button>`);
+}
+function finishOnboarding(){
+  const v = document.getElementById('nameInput').value.trim();
+  S.name = v || 'Ninja Sem Nome';
+  closeModal();
+  toast('Escolha seu clã na aba "Clã & Elementos" para receber bônus exclusivos!', 'Dica', 'item');
+  switchScreen('cla');
+  saveGame(true);
+}
+
+function boot(){
+  buildShell();
+  const hadSave = loadGame();
+  offlineProgress();
+  renderAll();
+  switchScreen('visao');
+  if(!hadSave){
+    setTimeout(nameOnboarding, 300);
+  }
+  setInterval(gameLoop, 1000);
+  setInterval(()=>saveGame(true), 20000);
+  window.addEventListener('beforeunload', ()=>saveGame(true));
+}
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+</body>
+</html>
